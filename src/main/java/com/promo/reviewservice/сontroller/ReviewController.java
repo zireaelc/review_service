@@ -1,7 +1,7 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.model.Review;
-import com.promo.reviewservice.repository.ReviewRepository;
+import com.promo.reviewservice.dto.ReviewDTO;
+import com.promo.reviewservice.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,15 +11,31 @@ import java.util.List;
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
-    private final ReviewRepository repository;
+    private final ReviewService reviewService;
 
     @GetMapping
-    public List<Review> getAllCategory() {
-        return repository.findAll();
+    public List<ReviewDTO> getAllReviews() {
+        return reviewService.getAllReviews();
     }
 
     @PostMapping
-    public Review createReview(@RequestBody Review review){
-        return repository.save(review);
+    public ReviewDTO createReview(@RequestBody ReviewDTO reviewDTO) {
+        return reviewService.createReview(reviewDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ReviewDTO getReviewById(@PathVariable Long id) {
+        return reviewService.getReviewById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+    }
+
+    @PutMapping("/{id}")
+    public ReviewDTO updateReview(@PathVariable Long id, @RequestBody ReviewDTO updatedReviewDTO) {
+        return reviewService.updateReview(id, updatedReviewDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
     }
 }
