@@ -1,6 +1,8 @@
 package com.promo.reviewservice.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ public class Review {
     private String text;
 
     @Column(nullable = false)
+    @Min(1)
+    @Max(5)
     private int rating;
 
     @Column(nullable = false)

@@ -58,6 +58,73 @@ public class ReviewService {
         reviewRepository.deleteById(id);
     }
 
+    // Сортировки и фильтрация
+
+    public List<ReviewDTO> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return reviewRepository.findByCreatedAtBetween(startDate, endDate).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsBySubcategory(Long subcategoryId) {
+        Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
+                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+        return reviewRepository.findBySubcategory(subcategory).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsByCategory(Long categoryId) {
+        return reviewRepository.findByCategory(categoryId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsSortedByRatingAsc() {
+        return reviewRepository.findAllByOrderByRatingAsc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsSortedByRatingDesc() {
+        return reviewRepository.findAllByOrderByRatingDesc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsSortedByDateAsc() {
+        return reviewRepository.findAllByOrderByCreatedAtAsc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsSortedByDateDesc() {
+        return reviewRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate) {
+        return reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(Long subcategoryId) {
+        Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
+                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+        return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getReviewsByCategorySortedByDateDesc(Long categoryId) {
+        return reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
     private ReviewDTO convertToDTO(Review review) {
         ReviewDTO reviewDTO = new ReviewDTO();
         reviewDTO.setId(review.getId());
