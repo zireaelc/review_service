@@ -36,7 +36,6 @@ public class UserService {
         return this::getByUsername;
     }
 
-    //todo пример как из контекста достать пользователя
     public User getCurrentUser() {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         return getByUsername(username);

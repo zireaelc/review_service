@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class Review {
     @Max(5)
     private int rating;
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

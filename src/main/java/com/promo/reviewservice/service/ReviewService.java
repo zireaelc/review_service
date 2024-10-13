@@ -27,10 +27,11 @@ public class ReviewService {
 
     public ReviewDTO createReview(ReviewDTO reviewDTO) {
         Review review = convertToEntity(reviewDTO);
+        review.setText(reviewDTO.getText());
+        review.setRating(reviewDTO.getRating());
         Subcategory subcategory = subcategoryRepository.findById(reviewDTO.getSubcategoryId())
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
         review.setSubcategory(subcategory);
-        review.setCreatedAt(LocalDateTime.now());
         review = reviewRepository.save(review);
         return convertToDTO(review);
     }
@@ -130,7 +131,6 @@ public class ReviewService {
         reviewDTO.setId(review.getId());
         reviewDTO.setText(review.getText());
         reviewDTO.setRating(review.getRating());
-        reviewDTO.setCreatedAt(review.getCreatedAt());
         reviewDTO.setSubcategoryId(review.getSubcategory().getId());
         return reviewDTO;
     }
@@ -140,7 +140,6 @@ public class ReviewService {
         review.setId(reviewDTO.getId());
         review.setText(reviewDTO.getText());
         review.setRating(reviewDTO.getRating());
-        review.setCreatedAt(reviewDTO.getCreatedAt());
         return review;
     }
 }

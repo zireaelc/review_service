@@ -40,7 +40,7 @@ public class AuthenticationService {
     public TokenResponse signIn(SignInRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getUsername(),
-                request.getEmail()
+                request.getPassword()
         ));
 
         var user = userService.userDetailsService()
