@@ -6,6 +6,8 @@ import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.ReviewRepository;
 import com.promo.reviewservice.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,10 +21,8 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final SubcategoryRepository subcategoryRepository;
 
-    public List<ReviewDTO> getAllReviews() {
-        return reviewRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable).map(this::convertToDTO);
     }
 
     public ReviewDTO createReview(ReviewDTO reviewDTO) {
@@ -61,68 +61,48 @@ public class ReviewService {
 
     // Сортировки и фильтрация
 
-    public List<ReviewDTO> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return reviewRepository.findByCreatedAtBetween(startDate, endDate).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsBySubcategory(Long subcategoryId) {
+    public Page<ReviewDTO> getReviewsBySubcategory(Long subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
-        return reviewRepository.findBySubcategory(subcategory).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return reviewRepository.findBySubcategory(subcategory, pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsByCategory(Long categoryId) {
-        return reviewRepository.findByCategory(categoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsByCategory(Long categoryId, Pageable pageable) {
+        return reviewRepository.findByCategory(categoryId, pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsSortedByRatingAsc() {
-        return reviewRepository.findAllByOrderByRatingAsc().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsSortedByRatingAsc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByRatingAsc(pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsSortedByRatingDesc() {
-        return reviewRepository.findAllByOrderByRatingDesc().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsSortedByRatingDesc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByRatingAsc(pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsSortedByDateAsc() {
-        return reviewRepository.findAllByOrderByCreatedAtAsc().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsSortedByDateAsc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByCreatedAtAsc(pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsSortedByDateDesc() {
-        return reviewRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsSortedByDateDesc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByCreatedAtDesc(pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate) {
-        return reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(Long subcategoryId) {
+    public Page<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(Long subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
-        return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable).map(this::convertToDTO);
     }
 
-    public List<ReviewDTO> getReviewsByCategorySortedByDateDesc(Long categoryId) {
-        return reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ReviewDTO> getReviewsByCategorySortedByDateDesc(Long categoryId, Pageable pageable) {
+        return reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable).map(this::convertToDTO);
     }
 
 

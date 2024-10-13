@@ -3,6 +3,10 @@ package com.promo.reviewservice.сontroller;
 import com.promo.reviewservice.dto.ReviewDTO;
 import com.promo.reviewservice.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +20,11 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping
-    public List<ReviewDTO> getAllReviews() {
-        return reviewService.getAllReviews();
+    public Page<ReviewDTO> getAllReviews(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size,
+                                         @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return reviewService.getAllReviews(pageable);
     }
 
     @PostMapping
@@ -44,56 +51,92 @@ public class ReviewController {
     // Сортировки и фильтрация
 
     @GetMapping("/by-date-range")
-    public List<ReviewDTO> getReviewsByDateRange(
+    public Page<ReviewDTO> getReviewsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        return reviewService.getReviewsByDateRange(startDate, endDate);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return reviewService.getReviewsByDateRange(startDate, endDate, pageable);
     }
 
     @GetMapping("/by-subcategory/{subcategoryId}")
-    public List<ReviewDTO> getReviewsBySubcategory(@PathVariable Long subcategoryId) {
-        return reviewService.getReviewsBySubcategory(subcategoryId);
+    public Page<ReviewDTO> getReviewsBySubcategory(@PathVariable Long subcategoryId,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size,
+                                                   @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return reviewService.getReviewsBySubcategory(subcategoryId, pageable);
     }
 
     @GetMapping("/by-category/{categoryId}")
-    public List<ReviewDTO> getReviewsByCategory(@PathVariable Long categoryId) {
-        return reviewService.getReviewsByCategory(categoryId);
+    public Page<ReviewDTO> getReviewsByCategory(@PathVariable Long categoryId,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return reviewService.getReviewsByCategory(categoryId, pageable);
     }
 
     @GetMapping("/sorted-by-rating-asc")
-    public List<ReviewDTO> getReviewsSortedByRatingAsc() {
-        return reviewService.getReviewsSortedByRatingAsc();
+    public Page<ReviewDTO> getReviewsSortedByRatingAsc(@RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").ascending());
+        return reviewService.getReviewsSortedByRatingAsc(pageable);
     }
 
     @GetMapping("/sorted-by-rating-desc")
-    public List<ReviewDTO> getReviewsSortedByRatingDesc() {
-        return reviewService.getReviewsSortedByRatingDesc();
+    public Page<ReviewDTO> getReviewsSortedByRatingDesc(@RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
+        return reviewService.getReviewsSortedByRatingDesc(pageable);
     }
 
     @GetMapping("/sorted-by-date-asc")
-    public List<ReviewDTO> getReviewsSortedByDateAsc() {
-        return reviewService.getReviewsSortedByDateAsc();
+    public Page<ReviewDTO> getReviewsSortedByDateAsc(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+        return reviewService.getReviewsSortedByDateAsc(pageable);
     }
 
     @GetMapping("/sorted-by-date-desc")
-    public List<ReviewDTO> getReviewsSortedByDateDesc() {
-        return reviewService.getReviewsSortedByDateDesc();
+    public Page<ReviewDTO> getReviewsSortedByDateDesc(@RequestParam(defaultValue = "0") int page,
+                                                      @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return reviewService.getReviewsSortedByDateDesc(pageable);
     }
 
     @GetMapping("/by-date-range-sorted-by-date-desc")
-    public List<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(
+    public Page<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        return reviewService.getReviewsByDateRangeSortedByDateDesc(startDate, endDate);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return reviewService.getReviewsByDateRangeSortedByDateDesc(startDate, endDate, pageable);
     }
 
     @GetMapping("/by-subcategory-sorted-by-rating-desc/{subcategoryId}")
-    public List<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(@PathVariable Long subcategoryId) {
-        return reviewService.getReviewsBySubcategorySortedByRatingDesc(subcategoryId);
+    public Page<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(@PathVariable Long subcategoryId,
+                                                                     @RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
+        return reviewService.getReviewsBySubcategorySortedByRatingDesc(subcategoryId, pageable);
     }
 
     @GetMapping("/by-category-sorted-by-date-desc/{categoryId}")
-    public List<ReviewDTO> getReviewsByCategorySortedByDateDesc(@PathVariable Long categoryId) {
-        return reviewService.getReviewsByCategorySortedByDateDesc(categoryId);
+    public Page<ReviewDTO> getReviewsByCategorySortedByDateDesc(@PathVariable Long categoryId,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return reviewService.getReviewsByCategorySortedByDateDesc(categoryId, pageable);
+    }
+
+    private Pageable createPageable(int page, int size, String sort) {
+        String[] sortParams = sort.split(",");
+        Sort sortObj = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
+        return PageRequest.of(page, size, sortObj);
     }
 }
