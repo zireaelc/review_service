@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final SubcategoryRepository subcategoryRepository;
+    private final EmailService emailService;
 
     public Page<ReviewDTO> getAllReviews(Pageable pageable) {
         return reviewRepository.findAll(pageable).map(this::convertToDTO);
@@ -33,6 +34,7 @@ public class ReviewService {
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
         review.setSubcategory(subcategory);
         review = reviewRepository.save(review);
+        emailService.sendSimpleMessage("fedorenko809@yandex.ru", "New Review Created", "A new review has been created.");
         return convertToDTO(review);
     }
 
