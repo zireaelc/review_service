@@ -8,6 +8,8 @@ import com.promo.reviewservice.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepository reviewRepository;
+    private final UserService userService;
     private final SubcategoryRepository subcategoryRepository;
     private final EmailService emailService;
 
@@ -34,8 +37,34 @@ public class ReviewService {
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
         review.setSubcategory(subcategory);
         review = reviewRepository.save(review);
-        emailService.sendSimpleMessage("fedorenko809@yandex.ru", "New Review Created", "A new review has been created.");
+        // отправка уведомления на почту
+        String username = getCurrentUsername();
+        String subject = "New Review Created";
+        String text = String.format("A new review has been created:\n\n" +
+                        "User: %s\n" +
+                        "Review Text: %s\n" +
+                        "Rating: %d\n" +
+                        "Category: %s\n" +
+                        "Subcategory: %s",
+                username,
+                reviewDTO.getText(),
+                reviewDTO.getRating(),
+                subcategory.getCategory().getName(),
+                subcategory.getName());
+        List<String> adminEmails = userService.getAdminEmails();
+        for (String email : adminEmails) {
+            emailService.sendSimpleMessage(email, subject, text);
+        }
         return convertToDTO(review);
+    }
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
     }
 
     public Optional<ReviewDTO> getReviewById(Long id) {
