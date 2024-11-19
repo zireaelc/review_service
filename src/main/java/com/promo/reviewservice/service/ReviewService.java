@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +25,22 @@ public class ReviewService {
     private final SubcategoryRepository subcategoryRepository;
     private final EmailService emailService;
 
-    public Page<ReviewDTO> getAllReviews(Pageable pageable) {
-        return reviewRepository.findAll(pageable).map(this::convertToDTO);
+    public Page<Review> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable);
     }
 
-    public ReviewDTO createReview(ReviewDTO reviewDTO) {
-        Review review = convertToEntity(reviewDTO);
-        review.setText(reviewDTO.getText());
-        review.setRating(reviewDTO.getRating());
-        Subcategory subcategory = subcategoryRepository.findById(reviewDTO.getSubcategoryId())
+    public Review createReview(Review review) {
+        review.setText(review.getText());
+        review.setRating(review.getRating());
+        Subcategory subcategory = subcategoryRepository.findById(review.getSubcategory().getId())
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
         review.setSubcategory(subcategory);
         review = reviewRepository.save(review);
-        // отправка уведомления на почту
+        sendReviewNotification(review, subcategory);
+        return review;
+    }
+
+    private void sendReviewNotification(Review review, Subcategory subcategory) {
         String username = getCurrentUsername();
         String subject = "New Review Created";
         String text = String.format("A new review has been created:\n\n" +
@@ -46,15 +50,14 @@ public class ReviewService {
                         "Category: %s\n" +
                         "Subcategory: %s",
                 username,
-                reviewDTO.getText(),
-                reviewDTO.getRating(),
+                review.getText(),
+                review.getRating(),
                 subcategory.getCategory().getName(),
                 subcategory.getName());
         List<String> adminEmails = userService.getAdminEmails();
         for (String email : adminEmails) {
             emailService.sendSimpleMessage(email, subject, text);
         }
-        return convertToDTO(review);
     }
 
     private String getCurrentUsername() {
@@ -66,90 +69,69 @@ public class ReviewService {
         }
     }
 
-    public Optional<ReviewDTO> getReviewById(Long id) {
-        return reviewRepository.findById(id)
-                .map(this::convertToDTO);
+    public Optional<Review> getReviewById(UUID id) {
+        return reviewRepository.findById(id);
     }
 
-    public ReviewDTO updateReview(Long id, ReviewDTO updatedReviewDTO) {
+    public Review updateReview(UUID id, Review updatedReview) {
         return reviewRepository.findById(id)
                 .map(review -> {
-                    review.setText(updatedReviewDTO.getText());
-                    review.setRating(updatedReviewDTO.getRating());
-                    Subcategory subcategory = subcategoryRepository.findById(updatedReviewDTO.getSubcategoryId())
+                    review.setText(updatedReview.getText());
+                    review.setRating(updatedReview.getRating());
+                    Subcategory subcategory = subcategoryRepository.findById(updatedReview.getSubcategory().getId())
                             .orElseThrow(() -> new RuntimeException("Subcategory not found"));
                     review.setSubcategory(subcategory);
                     review = reviewRepository.save(review);
-                    return convertToDTO(review);
+                    return review;
                 })
                 .orElseThrow(() -> new RuntimeException("Review not found"));
     }
 
-    public void deleteReview(Long id) {
+    public void deleteReview(UUID id) {
         reviewRepository.deleteById(id);
     }
 
-    // Сортировки и фильтрация
-
-    public Page<ReviewDTO> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable);
     }
 
-    public Page<ReviewDTO> getReviewsBySubcategory(Long subcategoryId, Pageable pageable) {
+    public Page<Review> getReviewsBySubcategory(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
-        return reviewRepository.findBySubcategory(subcategory, pageable).map(this::convertToDTO);
+        return reviewRepository.findBySubcategory(subcategory, pageable);
     }
 
-    public Page<ReviewDTO> getReviewsByCategory(Long categoryId, Pageable pageable) {
-        return reviewRepository.findByCategory(categoryId, pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsByCategory(UUID categoryId, Pageable pageable) {
+        return reviewRepository.findByCategory(categoryId, pageable);
     }
 
-    public Page<ReviewDTO> getReviewsSortedByRatingAsc(Pageable pageable) {
-        return reviewRepository.findAllByOrderByRatingAsc(pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsSortedByRatingAsc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByRatingAsc(pageable);
     }
 
-    public Page<ReviewDTO> getReviewsSortedByRatingDesc(Pageable pageable) {
-        return reviewRepository.findAllByOrderByRatingAsc(pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsSortedByRatingDesc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByRatingDesc(pageable);
     }
 
-    public Page<ReviewDTO> getReviewsSortedByDateAsc(Pageable pageable) {
-        return reviewRepository.findAllByOrderByCreatedAtAsc(pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsSortedByDateAsc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByCreatedAtAsc(pageable);
     }
 
-    public Page<ReviewDTO> getReviewsSortedByDateDesc(Pageable pageable) {
-        return reviewRepository.findAllByOrderByCreatedAtDesc(pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsSortedByDateDesc(Pageable pageable) {
+        return reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
-    public Page<ReviewDTO> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable).map(this::convertToDTO);
+    public Page<Review> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable);
     }
 
-    public Page<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(Long subcategoryId, Pageable pageable) {
+    public Page<Review> getReviewsBySubcategorySortedByRatingDesc(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
-        return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable).map(this::convertToDTO);
+        return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable);
     }
 
-    public Page<ReviewDTO> getReviewsByCategorySortedByDateDesc(Long categoryId, Pageable pageable) {
-        return reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable).map(this::convertToDTO);
-    }
-
-
-    private ReviewDTO convertToDTO(Review review) {
-        ReviewDTO reviewDTO = new ReviewDTO();
-        reviewDTO.setId(review.getId());
-        reviewDTO.setText(review.getText());
-        reviewDTO.setRating(review.getRating());
-        reviewDTO.setSubcategoryId(review.getSubcategory().getId());
-        return reviewDTO;
-    }
-
-    private Review convertToEntity(ReviewDTO reviewDTO) {
-        Review review = new Review();
-        review.setId(reviewDTO.getId());
-        review.setText(reviewDTO.getText());
-        review.setRating(reviewDTO.getRating());
-        return review;
+    public Page<Review> getReviewsByCategorySortedByDateDesc(UUID categoryId, Pageable pageable) {
+        return reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable);
     }
 }

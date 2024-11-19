@@ -24,6 +24,7 @@ public class UserService {
 
     public User create(User user) {
         if (repository.existsByUsername(user.getUsername())) {
+            // todo custom error
             throw new RuntimeException("Пользователь с таким именем уже существует");
         }
 
@@ -32,6 +33,7 @@ public class UserService {
 
     public User getByUsername(String username) {
         return repository.findByUsername(username)
+                // todo custom error
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
 
     }

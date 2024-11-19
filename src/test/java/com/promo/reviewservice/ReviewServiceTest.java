@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,33 +61,34 @@ public class ReviewServiceTest {
     void testGetReviewById() {
         // Arrange
         Review review = new Review();
-        review.setId(1L);
+        //  todo сделай норм uuid
+        review.setId(UUID.fromString("1"));
         review.setText("Review 1");
         review.setRating(5);
         Subcategory subcategory1 = new Subcategory();
-        subcategory1.setId(1L);
+        subcategory1.setId(UUID.fromString("1"));
         subcategory1.setName("Subcategory 1");
         review.setSubcategory(subcategory1);
 
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(review));
 
         // Act
-        Optional<ReviewDTO> reviewDTO = reviewService.getReviewById(1L);
+        Optional<ReviewDTO> reviewDTO = reviewService.getReviewById(UUID.fromString("1"));
 
         // Assert
         assertTrue(reviewDTO.isPresent());
         assertEquals("Review 1", reviewDTO.get().getText());
         assertEquals(5, reviewDTO.get().getRating());
-        assertEquals(1L, reviewDTO.get().getSubcategoryId());
+        assertEquals(UUID.fromString("1"), reviewDTO.get().getSubcategoryId());
     }
 
     @Test
     void testGetReviewByIdNotFound() {
         // Arrange
-        when(reviewRepository.findById(1L)).thenReturn(Optional.empty());
+        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
 
         // Act
-        Optional<ReviewDTO> reviewDTO = reviewService.getReviewById(1L);
+        Optional<ReviewDTO> reviewDTO = reviewService.getReviewById(UUID.fromString("1"));
 
         // Assert
         assertFalse(reviewDTO.isPresent());
@@ -98,23 +100,23 @@ public class ReviewServiceTest {
         ReviewDTO reviewDTO = new ReviewDTO();
         reviewDTO.setText("New Review");
         reviewDTO.setRating(5);
-        reviewDTO.setSubcategoryId(1L);
+        reviewDTO.setSubcategoryId(UUID.fromString("1"));
 
         Subcategory subcategory = new Subcategory();
-        subcategory.setId(1L);
+        subcategory.setId(UUID.fromString("1"));
         subcategory.setName("Subcategory 1");
         Category category = new Category();
-        category.setId(1L);
+        category.setId(UUID.fromString("1"));
         category.setName("Category 1");
         subcategory.setCategory(category);
 
         Review savedReview = new Review();
-        savedReview.setId(1L);
+        savedReview.setId(UUID.fromString("1"));
         savedReview.setText("New Review");
         savedReview.setRating(5);
         savedReview.setSubcategory(subcategory);
 
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.of(subcategory));
+        when(subcategoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(subcategory));
         when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
 
         // Act
@@ -124,7 +126,7 @@ public class ReviewServiceTest {
         assertNotNull(createdReviewDTO.getId());
         assertEquals("New Review", createdReviewDTO.getText());
         assertEquals(5, createdReviewDTO.getRating());
-        assertEquals(1L, createdReviewDTO.getSubcategoryId());
+        assertEquals(UUID.fromString("1"), createdReviewDTO.getSubcategoryId());
     }
 
     @Test
@@ -133,9 +135,9 @@ public class ReviewServiceTest {
         ReviewDTO reviewDTO = new ReviewDTO();
         reviewDTO.setText("New Review");
         reviewDTO.setRating(5);
-        reviewDTO.setSubcategoryId(1L);
+        reviewDTO.setSubcategoryId(UUID.fromString("1"));
 
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(subcategoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
@@ -147,14 +149,14 @@ public class ReviewServiceTest {
     void testUpdateReview() {
         // Arrange
         Review existingReview = new Review();
-        existingReview.setId(1L);
+        existingReview.setId(UUID.fromString("1"));
         existingReview.setText("Old Review");
         existingReview.setRating(4);
         Subcategory subcategory1 = new Subcategory();
-        subcategory1.setId(1L);
+        subcategory1.setId(UUID.fromString("1"));
         subcategory1.setName("Subcategory 1");
         Category category = new Category();
-        category.setId(1L);
+        category.setId(UUID.fromString("1"));
         category.setName("Category 1");
         subcategory1.setCategory(category);
         existingReview.setSubcategory(subcategory1);
@@ -162,27 +164,27 @@ public class ReviewServiceTest {
         ReviewDTO updatedReviewDTO = new ReviewDTO();
         updatedReviewDTO.setText("Updated Review");
         updatedReviewDTO.setRating(5);
-        updatedReviewDTO.setSubcategoryId(2L);
+        updatedReviewDTO.setSubcategoryId(UUID.fromString("2"));
 
         Subcategory updatedSubcategory = new Subcategory();
-        updatedSubcategory.setId(2L);
+        updatedSubcategory.setId(UUID.fromString("2"));
         Category category1 = new Category();
-        category1.setId(1L);
+        category1.setId(UUID.fromString("1"));
         category1.setName("Category 1");
         updatedSubcategory.setCategory(category);
         updatedSubcategory.setName("Subcategory 2");
 
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(existingReview));
-        when(subcategoryRepository.findById(2L)).thenReturn(Optional.of(updatedSubcategory));
+        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(existingReview));
+        when(subcategoryRepository.findById(UUID.fromString("2"))).thenReturn(Optional.of(updatedSubcategory));
         when(reviewRepository.save(any(Review.class))).thenReturn(existingReview);
 
         // Act
-        ReviewDTO resultDTO = reviewService.updateReview(1L, updatedReviewDTO);
+        ReviewDTO resultDTO = reviewService.updateReview(UUID.fromString("1"), updatedReviewDTO);
 
         // Assert
         assertEquals("Updated Review", resultDTO.getText());
         assertEquals(5, resultDTO.getRating());
-        assertEquals(2L, resultDTO.getSubcategoryId());
+        assertEquals(UUID.fromString("2"), resultDTO.getSubcategoryId());
     }
 
     @Test
@@ -191,13 +193,13 @@ public class ReviewServiceTest {
         ReviewDTO updatedReviewDTO = new ReviewDTO();
         updatedReviewDTO.setText("Updated Review");
         updatedReviewDTO.setRating(5);
-        updatedReviewDTO.setSubcategoryId(2L);
+        updatedReviewDTO.setSubcategoryId(UUID.fromString("2"));
 
-        when(reviewRepository.findById(1L)).thenReturn(Optional.empty());
+        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            reviewService.updateReview(1L, updatedReviewDTO);
+            reviewService.updateReview(UUID.fromString("1"), updatedReviewDTO);
         });
     }
 
@@ -205,14 +207,14 @@ public class ReviewServiceTest {
     void testUpdateReviewSubcategoryNotFound() {
         // Arrange
         Review existingReview = new Review();
-        existingReview.setId(1L);
+        existingReview.setId(UUID.fromString("1"));
         existingReview.setText("Old Review");
         existingReview.setRating(4);
         Subcategory subcategory1 = new Subcategory();
-        subcategory1.setId(1L);
+        subcategory1.setId(UUID.fromString("1"));
         subcategory1.setName("Subcategory 1");
         Category category = new Category();
-        category.setId(1L);
+        category.setId(UUID.fromString("1"));
         category.setName("Category 1");
         subcategory1.setCategory(category);
         existingReview.setSubcategory(subcategory1);
@@ -220,26 +222,26 @@ public class ReviewServiceTest {
         ReviewDTO updatedReviewDTO = new ReviewDTO();
         updatedReviewDTO.setText("Updated Review");
         updatedReviewDTO.setRating(5);
-        updatedReviewDTO.setSubcategoryId(2L);
+        updatedReviewDTO.setSubcategoryId(UUID.fromString("2"));
 
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(existingReview));
-        when(subcategoryRepository.findById(2L)).thenReturn(Optional.empty());
+        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(existingReview));
+        when(subcategoryRepository.findById(UUID.fromString("2"))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            reviewService.updateReview(1L, updatedReviewDTO);
+            reviewService.updateReview(UUID.fromString("1"), updatedReviewDTO);
         });
     }
 
     @Test
     void testDeleteReview() {
         // Arrange
-        doNothing().when(reviewRepository).deleteById(1L);
+        doNothing().when(reviewRepository).deleteById(UUID.fromString("1"));
 
         // Act
-        reviewService.deleteReview(1L);
+        reviewService.deleteReview(UUID.fromString("1"));
 
         // Assert
-        verify(reviewRepository, times(1)).deleteById(1L);
+        verify(reviewRepository, times(1)).deleteById(UUID.fromString("1"));
     }
 }

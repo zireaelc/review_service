@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,11 +35,12 @@ public class CategoryServiceTest {
     void testGetAllCategories() {
         // Arrange
         Category category1 = new Category();
-        category1.setId(1L);
+        //  todo сделай норм uuid
+        category1.setId(UUID.fromString("1"));
         category1.setName("Category 1");
 
         Category category2 = new Category();
-        category2.setId(2L);
+        category2.setId(UUID.fromString("2"));
         category2.setName("Category 2");
 
         when(categoryRepository.findAll()).thenReturn(Arrays.asList(category1, category2));
@@ -59,7 +61,7 @@ public class CategoryServiceTest {
         categoryDTO.setName("New Category");
 
         Category savedCategory = new Category();
-        savedCategory.setId(1L);
+        savedCategory.setId(UUID.fromString("1"));
         savedCategory.setName("New Category");
 
         when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
@@ -76,13 +78,13 @@ public class CategoryServiceTest {
     void testGetCategoryById() {
         // Arrange
         Category category = new Category();
-        category.setId(1L);
+        category.setId(UUID.fromString("1"));
         category.setName("Category 1");
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(category));
 
         // Act
-        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(1L);
+        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(UUID.fromString("1"));
 
         // Assert
         assertTrue(categoryDTO.isPresent());
@@ -92,10 +94,11 @@ public class CategoryServiceTest {
     @Test
     void testGetCategoryByIdNotFound() {
         // Arrange
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        // подумай емае
+        // when(categoryRepository.findById((UUID.fromString("1"))).orElseThrow();
 
         // Act
-        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(1L);
+        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(UUID.fromString("1"));
 
         // Assert
         assertFalse(categoryDTO.isPresent());
@@ -105,17 +108,17 @@ public class CategoryServiceTest {
     void testUpdateCategory() {
         // Arrange
         Category existingCategory = new Category();
-        existingCategory.setId(1L);
+        existingCategory.setId(UUID.fromString("1"));
         existingCategory.setName("Old Category");
 
         CategoryDTO updatedCategoryDTO = new CategoryDTO();
         updatedCategoryDTO.setName("Updated Category");
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(existingCategory));
+        when(categoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(existingCategory));
         when(categoryRepository.save(any(Category.class))).thenReturn(existingCategory);
 
         // Act
-        CategoryDTO resultDTO = categoryService.updateCategory(1L, updatedCategoryDTO);
+        CategoryDTO resultDTO = categoryService.updateCategory(UUID.fromString("1"), updatedCategoryDTO);
 
         // Assert
         assertEquals("Updated Category", resultDTO.getName());
@@ -127,23 +130,23 @@ public class CategoryServiceTest {
         CategoryDTO updatedCategoryDTO = new CategoryDTO();
         updatedCategoryDTO.setName("Updated Category");
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            categoryService.updateCategory(1L, updatedCategoryDTO);
+            categoryService.updateCategory(UUID.fromString("1"), updatedCategoryDTO);
         });
     }
 
     @Test
     void testDeleteCategory() {
         // Arrange
-        doNothing().when(categoryRepository).deleteById(1L);
+        doNothing().when(categoryRepository).deleteById(UUID.fromString("1"));
 
         // Act
-        categoryService.deleteCategory(1L);
+        categoryService.deleteCategory(UUID.fromString("1"));
 
         // Assert
-        verify(categoryRepository, times(1)).deleteById(1L);
+        verify(categoryRepository, times(1)).deleteById(UUID.fromString("1"));
     }
 }

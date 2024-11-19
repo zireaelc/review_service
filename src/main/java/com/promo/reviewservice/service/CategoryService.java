@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -15,48 +16,29 @@ import java.util.stream.Collectors;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
     }
 
-    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-        Category category = convertToEntity(categoryDTO);
+    public Category createCategory(Category category) {
         category = categoryRepository.save(category);
-        return convertToDTO(category);
+        return category;
     }
 
-    public Optional<CategoryDTO> getCategoryById(Long id) {
-        return categoryRepository.findById(id)
-                .map(this::convertToDTO);
+    public Optional<Category> getCategoryById(UUID id) {
+        return categoryRepository.findById(id);
     }
 
-    public CategoryDTO updateCategory(Long id, CategoryDTO updatedCategoryDTO) {
+    public Category updateCategory(UUID id, Category updatedCategory) {
         return categoryRepository.findById(id)
                 .map(category -> {
-                    category.setName(updatedCategoryDTO.getName());
-                    category = categoryRepository.save(category);
-                    return convertToDTO(category);
+                    category.setName(updatedCategory.getName());
+                    return categoryRepository.save(category);
                 })
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    public void deleteCategory(Long id) {
+    public void deleteCategory(UUID id) {
         categoryRepository.deleteById(id);
-    }
-
-    private CategoryDTO convertToDTO(Category category) {
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setId(category.getId());
-        categoryDTO.setName(category.getName());
-        return categoryDTO;
-    }
-
-    private Category convertToEntity(CategoryDTO categoryDTO) {
-        Category category = new Category();
-        category.setId(categoryDTO.getId());
-        category.setName(categoryDTO.getName());
-        return category;
     }
 }

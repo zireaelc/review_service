@@ -1,53 +1,64 @@
 package com.promo.reviewservice.сontroller;
 
+import com.promo.reviewservice.dto.CategoryDTO;
 import com.promo.reviewservice.dto.ReviewDTO;
+import com.promo.reviewservice.model.Category;
+import com.promo.reviewservice.model.Review;
 import com.promo.reviewservice.service.ReviewService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
+    private final ModelMapper modelMapper;
+
+    private ReviewDTO toDto(Review entity) {
+        return modelMapper.map(entity, ReviewDTO.class);
+    }
+
+    private Review toEntity(ReviewDTO dto) {
+        return modelMapper.map(dto, Review.class);
+    }
 
     @GetMapping
     public Page<ReviewDTO> getAllReviews(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "10") int size,
                                          @RequestParam(defaultValue = "createdAt,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return reviewService.getAllReviews(pageable);
+        return reviewService.getAllReviews(pageable).map(this::toDto);
     }
 
     @PostMapping
     public ReviewDTO createReview(@RequestBody ReviewDTO reviewDTO) {
-        return reviewService.createReview(reviewDTO);
+        return toDto(reviewService.createReview(toEntity(reviewDTO)));
     }
 
     @GetMapping("/{id}")
-    public ReviewDTO getReviewById(@PathVariable Long id) {
-        return reviewService.getReviewById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+    public ReviewDTO getReviewById(@PathVariable UUID id) {
+        return toDto(reviewService.getReviewById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found")));
     }
 
     @PutMapping("/{id}")
-    public ReviewDTO updateReview(@PathVariable Long id, @RequestBody ReviewDTO updatedReviewDTO) {
-        return reviewService.updateReview(id, updatedReviewDTO);
+    public ReviewDTO updateReview(@PathVariable UUID id, @RequestBody ReviewDTO updatedReviewDTO) {
+        return toDto(reviewService.updateReview(id, toEntity(updatedReviewDTO)));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable Long id) {
+    public void deleteReview(@PathVariable UUID id) {
         reviewService.deleteReview(id);
     }
-
-    // Сортировки и фильтрация
 
     @GetMapping("/by-date-range")
     public Page<ReviewDTO> getReviewsByDateRange(
@@ -57,53 +68,53 @@ public class ReviewController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return reviewService.getReviewsByDateRange(startDate, endDate, pageable);
+        return reviewService.getReviewsByDateRange(startDate, endDate, pageable).map(this::toDto);
     }
 
     @GetMapping("/by-subcategory/{subcategoryId}")
-    public Page<ReviewDTO> getReviewsBySubcategory(@PathVariable Long subcategoryId,
+    public Page<ReviewDTO> getReviewsBySubcategory(@PathVariable UUID subcategoryId,
                                                    @RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "10") int size,
                                                    @RequestParam(defaultValue = "createdAt,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return reviewService.getReviewsBySubcategory(subcategoryId, pageable);
+        return reviewService.getReviewsBySubcategory(subcategoryId, pageable).map(this::toDto);
     }
 
     @GetMapping("/by-category/{categoryId}")
-    public Page<ReviewDTO> getReviewsByCategory(@PathVariable Long categoryId,
+    public Page<ReviewDTO> getReviewsByCategory(@PathVariable UUID categoryId,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size,
                                                 @RequestParam(defaultValue = "createdAt,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return reviewService.getReviewsByCategory(categoryId, pageable);
+        return reviewService.getReviewsByCategory(categoryId, pageable).map(this::toDto);
     }
 
     @GetMapping("/sorted-by-rating-asc")
     public Page<ReviewDTO> getReviewsSortedByRatingAsc(@RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("rating").ascending());
-        return reviewService.getReviewsSortedByRatingAsc(pageable);
+        return reviewService.getReviewsSortedByRatingAsc(pageable).map(this::toDto);
     }
 
     @GetMapping("/sorted-by-rating-desc")
     public Page<ReviewDTO> getReviewsSortedByRatingDesc(@RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
-        return reviewService.getReviewsSortedByRatingDesc(pageable);
+        return reviewService.getReviewsSortedByRatingDesc(pageable).map(this::toDto);
     }
 
     @GetMapping("/sorted-by-date-asc")
     public Page<ReviewDTO> getReviewsSortedByDateAsc(@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
-        return reviewService.getReviewsSortedByDateAsc(pageable);
+        return reviewService.getReviewsSortedByDateAsc(pageable).map(this::toDto);
     }
 
     @GetMapping("/sorted-by-date-desc")
     public Page<ReviewDTO> getReviewsSortedByDateDesc(@RequestParam(defaultValue = "0") int page,
                                                       @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return reviewService.getReviewsSortedByDateDesc(pageable);
+        return reviewService.getReviewsSortedByDateDesc(pageable).map(this::toDto);
     }
 
     @GetMapping("/by-date-range-sorted-by-date-desc")
@@ -114,23 +125,23 @@ public class ReviewController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return reviewService.getReviewsByDateRangeSortedByDateDesc(startDate, endDate, pageable);
+        return reviewService.getReviewsByDateRangeSortedByDateDesc(startDate, endDate, pageable).map(this::toDto);
     }
 
     @GetMapping("/by-subcategory-sorted-by-rating-desc/{subcategoryId}")
-    public Page<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(@PathVariable Long subcategoryId,
+    public Page<ReviewDTO> getReviewsBySubcategorySortedByRatingDesc(@PathVariable UUID subcategoryId,
                                                                      @RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
-        return reviewService.getReviewsBySubcategorySortedByRatingDesc(subcategoryId, pageable);
+        return reviewService.getReviewsBySubcategorySortedByRatingDesc(subcategoryId, pageable).map(this::toDto);
     }
 
     @GetMapping("/by-category-sorted-by-date-desc/{categoryId}")
-    public Page<ReviewDTO> getReviewsByCategorySortedByDateDesc(@PathVariable Long categoryId,
+    public Page<ReviewDTO> getReviewsByCategorySortedByDateDesc(@PathVariable UUID categoryId,
                                                                 @RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return reviewService.getReviewsByCategorySortedByDateDesc(categoryId, pageable);
+        return reviewService.getReviewsByCategorySortedByDateDesc(categoryId, pageable).map(this::toDto);
     }
 
     private Pageable createPageable(int page, int size, String sort) {
