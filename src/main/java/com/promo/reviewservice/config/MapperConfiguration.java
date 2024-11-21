@@ -1,9 +1,9 @@
 package com.promo.reviewservice.config;
 
-import com.promo.reviewservice.dto.CategoryDTO;
-import com.promo.reviewservice.dto.ReviewDTO;
-import com.promo.reviewservice.dto.SubcategoryDTO;
-import com.promo.reviewservice.model.Category;
+import com.promo.reviewservice.dto.review.ReviewRequest;
+import com.promo.reviewservice.dto.review.ReviewResponse;
+import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
+import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
 import com.promo.reviewservice.model.Review;
 import com.promo.reviewservice.model.Subcategory;
 import org.modelmapper.ModelMapper;
@@ -17,14 +17,28 @@ public class MapperConfiguration {
     ModelMapper modelMapper() {
         final ModelMapper modelMapper = new ModelMapper();
 
-        modelMapper.addMappings(new PropertyMap<Subcategory, SubcategoryDTO>() {
+        modelMapper.addMappings(new PropertyMap<Subcategory, SubcategoryRequest>() {
             @Override
             protected void configure() {
                 map().setCategoryId(source.getCategory().getId());
             }
         });
 
-        modelMapper.addMappings(new PropertyMap<Review, ReviewDTO>() {
+        modelMapper.addMappings(new PropertyMap<Review, ReviewRequest>() {
+            @Override
+            protected void configure() {
+                map().setSubcategoryId(source.getSubcategory().getId());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<Subcategory, SubcategoryResponse>() {
+            @Override
+            protected void configure() {
+                map().setCategoryId(source.getCategory().getId());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<Review, ReviewResponse>() {
             @Override
             protected void configure() {
                 map().setSubcategoryId(source.getSubcategory().getId());

@@ -1,6 +1,7 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.CategoryDTO;
+import com.promo.reviewservice.dto.category.CategoryRequest;
+import com.promo.reviewservice.dto.category.CategoryResponse;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -11,45 +12,42 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
     private final ModelMapper modelMapper;
 
-    private CategoryDTO toDto(Category entity) {
-        return modelMapper.map(entity, CategoryDTO.class);
+    private CategoryRequest toDto(Category entity) {
+        return modelMapper.map(entity, CategoryRequest.class);
     }
 
-    private Category toEntity(CategoryDTO dto) {
+    private Category toEntity(CategoryRequest dto) {
         return modelMapper.map(dto, Category.class);
     }
 
-    @GetMapping
-    public List<CategoryDTO> getAllCategories() {
-        return categoryService.getAllCategories().stream()
-                .map(this::toDto)
-                .toList();
+    @GetMapping("/categories")
+    public List<CategoryResponse> getAllCategories() {
+        return categoryService.getAllCategories();
     }
 
-    @PostMapping
-    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return toDto(categoryService.createCategory(toEntity(categoryDTO)));
+    @PostMapping("/categories")
+    public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
+        return categoryService.createCategory(toEntity(categoryRequest));
     }
 
-    @GetMapping("/{id}")
-    public CategoryDTO getCategoryById(@PathVariable UUID id) {
+    @GetMapping("/categories/{id}")
+    public CategoryResponse getCategoryById(@PathVariable UUID id) {
         return categoryService.getCategoryById(id)
-                .map(this::toDto)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    @PutMapping("/{id}")
-    public CategoryDTO updateCategory(@PathVariable UUID id, @RequestBody CategoryDTO updatedCategoryDTO) {
-        return toDto(categoryService.updateCategory(id, toEntity(updatedCategoryDTO)));
+    @PutMapping("/categories/{id}")
+    public CategoryResponse updateCategory(@PathVariable UUID id, @RequestBody CategoryRequest updatedCategoryRequest) {
+        return categoryService.updateCategory(id, toEntity(updatedCategoryRequest));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/categories/{id}")
     public void deleteCategory(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
     }

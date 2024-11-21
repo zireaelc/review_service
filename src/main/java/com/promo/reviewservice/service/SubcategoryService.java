@@ -1,41 +1,51 @@
 package com.promo.reviewservice.service;
 
-import com.promo.reviewservice.dto.SubcategoryDTO;
+import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
+import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
 import com.promo.reviewservice.exeptions.ResourceNotFoundException;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.CategoryRepository;
 import com.promo.reviewservice.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SubcategoryService {
     private final SubcategoryRepository subcategoryRepository;
     private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
 
-    public List<Subcategory> getAllSubcategories() {
-        return subcategoryRepository.findAll();
+    private SubcategoryResponse toDto(Subcategory entity) {
+        return modelMapper.map(entity, SubcategoryResponse.class);
     }
 
-    public Subcategory createSubcategory(Subcategory subcategory) {
+    private Subcategory toEntity(SubcategoryResponse dto) {
+        return modelMapper.map(dto, Subcategory.class);
+    }
+
+    public List<SubcategoryResponse> getAllSubcategories() {
+        return subcategoryRepository.findAll().stream().map(this::toDto).toList();
+    }
+
+    public SubcategoryResponse createSubcategory(Subcategory subcategory) {
         Category category = getCategoryById(subcategory.getCategory().getId());
         subcategory.setCategory(category);
-        return subcategoryRepository.save(subcategory);
+        return toDto(subcategoryRepository.save(subcategory));
     }
 
-    public Optional<Subcategory> getSubcategoryById(UUID id) {
-        return subcategoryRepository.findById(id);
+    public Optional<SubcategoryResponse> getSubcategoryById(UUID id) {
+        return subcategoryRepository.findById(id).map(this::toDto);
     }
 
-    public Subcategory updateSubcategory(UUID id, Subcategory updatedSubcategory) {
-        return subcategoryRepository.findById(id)
+    public SubcategoryResponse updateSubcategory(UUID id, Subcategory updatedSubcategory) {
+        var result = subcategoryRepository.findById(id)
                 .map(subcategory -> {
                     subcategory.setName(updatedSubcategory.getName());
                     Category category = getCategoryById(updatedSubcategory.getCategory().getId());
@@ -43,6 +53,7 @@ public class SubcategoryService {
                     return subcategoryRepository.save(subcategory);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + id));
+        return toDto(result);
     }
 
     public void deleteSubcategory(UUID id) {

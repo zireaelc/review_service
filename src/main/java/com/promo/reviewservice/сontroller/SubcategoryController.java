@@ -1,8 +1,7 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.CategoryDTO;
-import com.promo.reviewservice.dto.SubcategoryDTO;
-import com.promo.reviewservice.model.Category;
+import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
+import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.service.SubcategoryService;
 import lombok.RequiredArgsConstructor;
@@ -19,39 +18,36 @@ public class SubcategoryController {
     private final SubcategoryService subcategoryService;
     private final ModelMapper modelMapper;
 
-    private SubcategoryDTO toDto(Subcategory entity) {
-        return modelMapper.map(entity, SubcategoryDTO.class);
+    private SubcategoryRequest toDto(Subcategory entity) {
+        return modelMapper.map(entity, SubcategoryRequest.class);
     }
 
-    private Subcategory toEntity(SubcategoryDTO dto) {
+    private Subcategory toEntity(SubcategoryRequest dto) {
         return modelMapper.map(dto, Subcategory.class);
     }
 
-    @GetMapping
-    public List<SubcategoryDTO> getAllSubcategories() {
-        return subcategoryService.getAllSubcategories().stream()
-                .map(this::toDto)
-                .toList();
+    @GetMapping("/subcategories")
+    public List<SubcategoryResponse> getAllSubcategories() {
+        return subcategoryService.getAllSubcategories();
     }
 
-    @PostMapping
-    public SubcategoryDTO createSubcategory(@RequestBody SubcategoryDTO subcategoryDTO) {
-        return toDto(subcategoryService.createSubcategory(toEntity(subcategoryDTO)));
+    @PostMapping("/subcategories")
+    public SubcategoryResponse createSubcategory(@RequestBody SubcategoryRequest subcategoryRequest) {
+        return subcategoryService.createSubcategory(toEntity(subcategoryRequest));
     }
 
-    @GetMapping("/{id}")
-    public SubcategoryDTO getSubcategoryById(@PathVariable UUID id) {
+    @GetMapping("/subcategories/{id}")
+    public SubcategoryResponse getSubcategoryById(@PathVariable UUID id) {
         return subcategoryService.getSubcategoryById(id)
-                .map(this::toDto)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
     }
 
-    @PutMapping("/{id}")
-    public SubcategoryDTO updateSubcategory(@PathVariable UUID id, @RequestBody SubcategoryDTO updatedSubcategoryDTO) {
-        return toDto(subcategoryService.updateSubcategory(id, toEntity(updatedSubcategoryDTO)));
+    @PutMapping("/subcategories/{id}")
+    public SubcategoryResponse updateSubcategory(@PathVariable UUID id, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
+        return subcategoryService.updateSubcategory(id, toEntity(updatedSubcategoryRequest));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/subcategories/{id}")
     public void deleteSubcategory(@PathVariable UUID id) {
         subcategoryService.deleteSubcategory(id);
     }

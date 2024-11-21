@@ -1,4 +1,4 @@
-package com.promo.reviewservice.dto;
+package com.promo.reviewservice.dto.review;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class ReviewDTO {
+public class ReviewResponse {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private UUID id;
 
