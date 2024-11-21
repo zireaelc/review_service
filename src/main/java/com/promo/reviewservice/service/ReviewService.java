@@ -1,6 +1,7 @@
 package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.ReviewDTO;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
 import com.promo.reviewservice.model.Review;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.ReviewRepository;
@@ -33,7 +34,7 @@ public class ReviewService {
         review.setText(review.getText());
         review.setRating(review.getRating());
         Subcategory subcategory = subcategoryRepository.findById(review.getSubcategory().getId())
-                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found"));
         review.setSubcategory(subcategory);
         review = reviewRepository.save(review);
         sendReviewNotification(review, subcategory);
@@ -79,12 +80,13 @@ public class ReviewService {
                     review.setText(updatedReview.getText());
                     review.setRating(updatedReview.getRating());
                     Subcategory subcategory = subcategoryRepository.findById(updatedReview.getSubcategory().getId())
-                            .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " +
+                                    updatedReview.getSubcategory().getId()));
                     review.setSubcategory(subcategory);
                     review = reviewRepository.save(review);
                     return review;
                 })
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
     }
 
     public void deleteReview(UUID id) {
@@ -97,7 +99,7 @@ public class ReviewService {
 
     public Page<Review> getReviewsBySubcategory(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
-                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
         return reviewRepository.findBySubcategory(subcategory, pageable);
     }
 
@@ -127,7 +129,7 @@ public class ReviewService {
 
     public Page<Review> getReviewsBySubcategorySortedByRatingDesc(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
-                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
         return reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable);
     }
 

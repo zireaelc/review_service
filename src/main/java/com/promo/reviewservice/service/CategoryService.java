@@ -1,6 +1,7 @@
 package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.CategoryDTO;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class CategoryService {
                     category.setName(updatedCategory.getName());
                     return categoryRepository.save(category);
                 })
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 
     public void deleteCategory(UUID id) {

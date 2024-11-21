@@ -1,6 +1,7 @@
 package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.SubcategoryDTO;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.CategoryRepository;
@@ -41,7 +42,7 @@ public class SubcategoryService {
                     subcategory.setCategory(category);
                     return subcategoryRepository.save(subcategory);
                 })
-                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + id));
     }
 
     public void deleteSubcategory(UUID id) {
@@ -50,6 +51,6 @@ public class SubcategoryService {
 
     private Category getCategoryById(UUID categoryId) {
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
     }
 }

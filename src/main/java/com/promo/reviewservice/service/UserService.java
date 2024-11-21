@@ -1,5 +1,6 @@
 package com.promo.reviewservice.service;
 
+import com.promo.reviewservice.exeptions.UsernameAlreadyExistsException;
 import com.promo.reviewservice.model.Role;
 import com.promo.reviewservice.model.User;
 import com.promo.reviewservice.repository.UserRepository;
@@ -24,8 +25,7 @@ public class UserService {
 
     public User create(User user) {
         if (repository.existsByUsername(user.getUsername())) {
-            // todo custom error
-            throw new RuntimeException("Пользователь с таким именем уже существует");
+            throw new UsernameAlreadyExistsException("Пользователь с таким именем уже существует");
         }
 
         return save(user);
@@ -33,7 +33,6 @@ public class UserService {
 
     public User getByUsername(String username) {
         return repository.findByUsername(username)
-                // todo custom error
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
 
     }
