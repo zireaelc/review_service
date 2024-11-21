@@ -2,10 +2,9 @@ package com.promo.reviewservice.сontroller;
 
 import com.promo.reviewservice.dto.review.ReviewRequest;
 import com.promo.reviewservice.dto.review.ReviewResponse;
-import com.promo.reviewservice.model.Review;
+import com.promo.reviewservice.mapper.ReviewMapper;
 import com.promo.reviewservice.service.ReviewService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
-    private final ModelMapper modelMapper;
-
-    private ReviewRequest toDto(Review entity) {
-        return modelMapper.map(entity, ReviewRequest.class);
-    }
-
-    private Review toEntity(ReviewRequest dto) {
-        return modelMapper.map(dto, Review.class);
-    }
+    private final ReviewMapper reviewMapper;
 
     @GetMapping("/reviews")
     public Page<ReviewResponse> getAllReviews(@RequestParam(defaultValue = "0") int page,
@@ -38,7 +29,7 @@ public class ReviewController {
 
     @PostMapping("/reviews")
     public ReviewResponse createReview(@RequestBody ReviewRequest reviewRequest) {
-        return reviewService.createReview(toEntity(reviewRequest));
+        return reviewService.createReview(reviewMapper.fromReviewRequest(reviewRequest));
     }
 
     @GetMapping("/reviews/{id}")
@@ -49,7 +40,7 @@ public class ReviewController {
 
     @PutMapping("/reviews/{id}")
     public ReviewResponse updateReview(@PathVariable UUID id, @RequestBody ReviewRequest updatedReviewRequest) {
-        return reviewService.updateReview(id, toEntity(updatedReviewRequest));
+        return reviewService.updateReview(id, reviewMapper.fromReviewRequest(updatedReviewRequest));
     }
 
     @DeleteMapping("/reviews/{id}")

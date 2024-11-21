@@ -2,10 +2,9 @@ package com.promo.reviewservice.сontroller;
 
 import com.promo.reviewservice.dto.category.CategoryRequest;
 import com.promo.reviewservice.dto.category.CategoryResponse;
-import com.promo.reviewservice.model.Category;
+import com.promo.reviewservice.mapper.CategoryMapper;
 import com.promo.reviewservice.service.CategoryService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,15 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
-    private final ModelMapper modelMapper;
-
-    private CategoryRequest toDto(Category entity) {
-        return modelMapper.map(entity, CategoryRequest.class);
-    }
-
-    private Category toEntity(CategoryRequest dto) {
-        return modelMapper.map(dto, Category.class);
-    }
+    private final CategoryMapper categoryMapper;
 
     @GetMapping("/categories")
     public List<CategoryResponse> getAllCategories() {
@@ -33,7 +24,7 @@ public class CategoryController {
 
     @PostMapping("/categories")
     public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
-        return categoryService.createCategory(toEntity(categoryRequest));
+        return categoryService.createCategory(categoryMapper.fromCategoryRequest(categoryRequest));
     }
 
     @GetMapping("/categories/{id}")
@@ -44,7 +35,7 @@ public class CategoryController {
 
     @PutMapping("/categories/{id}")
     public CategoryResponse updateCategory(@PathVariable UUID id, @RequestBody CategoryRequest updatedCategoryRequest) {
-        return categoryService.updateCategory(id, toEntity(updatedCategoryRequest));
+        return categoryService.updateCategory(id, categoryMapper.fromCategoryRequest(updatedCategoryRequest));
     }
 
     @DeleteMapping("/categories/{id}")
