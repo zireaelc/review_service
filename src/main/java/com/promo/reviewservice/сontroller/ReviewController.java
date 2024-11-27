@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;

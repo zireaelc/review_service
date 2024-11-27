@@ -1,22 +1,12 @@
 package com.promo.reviewservice.dto.subcategory;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.UUID;
-
-@Data
-public class SubcategoryResponse {
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private UUID id;
-
-    @NotBlank
-    @Size(min = 1, max = 50)
-    private String name;
-
-    @NotNull
-    private UUID categoryId;
-}
+public record SubcategoryResponse (
+        @Schema(description = "ID подкатегории")
+        String id,
+        @Schema(description = "Название категории", example = "Категория")
+        String name,
+        @Schema(description = "ID категории")
+        String categoryId
+){}

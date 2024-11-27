@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
