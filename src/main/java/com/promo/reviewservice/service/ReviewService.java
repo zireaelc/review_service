@@ -9,6 +9,7 @@ import com.promo.reviewservice.repository.ReviewRepository;
 import com.promo.reviewservice.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +30,10 @@ public class ReviewService {
     private final ReviewMapper reviewMapper;
 
     public Page<ReviewResponse> getAllReviews(Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findAll(pageable));
+        var reviews = reviewRepository.findAll();
+        var reviewsDTO = reviewMapper.toReviewResponseList(reviews);
+        var page = new PageImpl<>(reviewsDTO, pageable, reviewsDTO.size());
+        return page;
     }
 
     public ReviewResponse createReview(Review review) {
@@ -73,7 +77,7 @@ public class ReviewService {
     }
 
     public Optional<ReviewResponse> getReviewById(UUID id) {
-        return reviewMapper.toReviewResponseOptional(reviewRepository.findById(id));
+        return Optional.of(reviewMapper.toReviewResponse(reviewRepository.findById(id).get()));
     }
 
     public ReviewResponse updateReview(UUID id, Review updatedReview) {
@@ -93,50 +97,63 @@ public class ReviewService {
     }
 
     public void deleteReview(UUID id) {
+        if (!reviewRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Review not found with id: " + id);
+        }
         reviewRepository.deleteById(id);
     }
 
     public Page<ReviewResponse> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable));
+        var reviews = reviewRepository.findByCreatedAtBetween(startDate, endDate);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsBySubcategory(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
-        return reviewMapper.toReviewResponsePage(reviewRepository.findBySubcategory(subcategory, pageable));
+        var reviews = reviewRepository.findBySubcategory(subcategory);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsByCategory(UUID categoryId, Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findByCategory(categoryId, pageable));
+        var reviews = reviewRepository.findByCategory(categoryId);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsSortedByRatingAsc(Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findAllByOrderByRatingAsc(pageable));
+        var reviews = reviewRepository.findAllByOrderByRatingAsc();
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsSortedByRatingDesc(Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findAllByOrderByRatingDesc(pageable));
+        var reviews = reviewRepository.findAllByOrderByRatingDesc();
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsSortedByDateAsc(Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findAllByOrderByCreatedAtAsc(pageable));
+        var reviews = reviewRepository.findAllByOrderByCreatedAtAsc();
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsSortedByDateDesc(Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findAllByOrderByCreatedAtDesc(pageable));
+        var reviews = reviewRepository.findAllByOrderByCreatedAtDesc();
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable));
+        var reviews = reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsBySubcategorySortedByRatingDesc(UUID subcategoryId, Pageable pageable) {
         Subcategory subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
-        return reviewMapper.toReviewResponsePage(reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable));
+        var reviews = reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 
     public Page<ReviewResponse> getReviewsByCategorySortedByDateDesc(UUID categoryId, Pageable pageable) {
-        return reviewMapper.toReviewResponsePage(reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable));
+        var reviews = reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId);
+        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
     }
 }

@@ -6,15 +6,21 @@ import com.promo.reviewservice.dto.review.ReviewResponse;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Review;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ReviewMapper {
+    @Mapping(target = "subcategory.id", source = "subcategoryId")
     Review fromReviewRequest(ReviewRequest request);
+
+    @Mapping(target = "subcategoryId", source = "subcategory.id")
     ReviewResponse toReviewResponse(Review review);
-    Page<ReviewResponse> toReviewResponsePage(Page<Review> page);
-    Optional<ReviewResponse> toReviewResponseOptional(Optional<Review> review);
+
+    @Mapping(target = "subcategoryId", source = "subcategory.id")
+    List<ReviewResponse> toReviewResponseList(List<Review> reviews);
 }

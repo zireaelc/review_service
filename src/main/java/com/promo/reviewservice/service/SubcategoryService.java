@@ -32,7 +32,7 @@ public class SubcategoryService {
     }
 
     public Optional<SubcategoryResponse> getSubcategoryById(UUID id) {
-        return subcategoryMapper.toSubcategoryResponseOptional(subcategoryRepository.findById(id));
+        return Optional.of(subcategoryMapper.toSubcategoryResponse(subcategoryRepository.findById(id).get()));
     }
 
     public SubcategoryResponse updateSubcategory(UUID id, Subcategory updatedSubcategory) {
@@ -48,6 +48,9 @@ public class SubcategoryService {
     }
 
     public void deleteSubcategory(UUID id) {
+        if (!subcategoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Subcategory not found with id: " + id);
+        }
         subcategoryRepository.deleteById(id);
     }
 

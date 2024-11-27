@@ -28,7 +28,7 @@ public class CategoryService {
     }
 
     public Optional<CategoryResponse> getCategoryById(UUID id) {
-        return categoryMapper.toCategoryResponseOptional(categoryRepository.findById(id));
+        return Optional.of(categoryMapper.toCategoryResponse(categoryRepository.findById(id).get()));
     }
 
     public CategoryResponse updateCategory(UUID id, Category updatedCategory) {
@@ -42,6 +42,9 @@ public class CategoryService {
     }
 
     public void deleteCategory(UUID id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Category not found with id: " + id);
+        }
         categoryRepository.deleteById(id);
     }
 }
