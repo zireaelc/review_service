@@ -1,6 +1,8 @@
 package com.promo.reviewservice.service;
 
-import com.promo.reviewservice.dto.CategoryDTO;
+import com.promo.reviewservice.dto.category.CategoryResponse;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
+import com.promo.reviewservice.mapper.CategoryMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,55 +10,41 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<CategoryResponse> getAllCategories() {
+        return categoryMapper.toCategoryResponseList(categoryRepository.findAll());
     }
 
-    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-        Category category = convertToEntity(categoryDTO);
+    public CategoryResponse createCategory(Category category) {
         category = categoryRepository.save(category);
-        return convertToDTO(category);
+        return categoryMapper.toCategoryResponse(category);
     }
 
-    public Optional<CategoryDTO> getCategoryById(Long id) {
-        return categoryRepository.findById(id)
-                .map(this::convertToDTO);
+    public Optional<CategoryResponse> getCategoryById(UUID id) {
+        return Optional.of(categoryMapper.toCategoryResponse(categoryRepository.findById(id).get()));
     }
 
-    public CategoryDTO updateCategory(Long id, CategoryDTO updatedCategoryDTO) {
-        return categoryRepository.findById(id)
+    public CategoryResponse updateCategory(UUID id, Category updatedCategory) {
+        var result = categoryRepository.findById(id)
                 .map(category -> {
-                    category.setName(updatedCategoryDTO.getName());
-                    category = categoryRepository.save(category);
-                    return convertToDTO(category);
+                    category.setName(updatedCategory.getName());
+                    return categoryRepository.save(category);
                 })
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        return categoryMapper.toCategoryResponse(result);
     }
 
-    public void deleteCategory(Long id) {
+    public void deleteCategory(UUID id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Category not found with id: " + id);
+        }
         categoryRepository.deleteById(id);
-    }
-
-    private CategoryDTO convertToDTO(Category category) {
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setId(category.getId());
-        categoryDTO.setName(category.getName());
-        return categoryDTO;
-    }
-
-    private Category convertToEntity(CategoryDTO categoryDTO) {
-        Category category = new Category();
-        category.setId(categoryDTO.getId());
-        category.setName(categoryDTO.getName());
-        return category;
     }
 }

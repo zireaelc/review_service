@@ -1,41 +1,45 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.SubcategoryDTO;
+import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
+import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
+import com.promo.reviewservice.mapper.SubcategoryMapper;
 import com.promo.reviewservice.service.SubcategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/subcategories")
+@RequestMapping
 @RequiredArgsConstructor
 public class SubcategoryController {
     private final SubcategoryService subcategoryService;
+    private final SubcategoryMapper subcategoryMapper;
 
-    @GetMapping
-    public List<SubcategoryDTO> getAllSubcategory() {
+    @GetMapping("/subcategories")
+    public List<SubcategoryResponse> getAllSubcategories() {
         return subcategoryService.getAllSubcategories();
     }
 
-    @PostMapping
-    public SubcategoryDTO createSubcategory(@RequestBody SubcategoryDTO subcategoryDTO) {
-        return subcategoryService.createSubcategory(subcategoryDTO);
+    @PostMapping("/subcategories")
+    public SubcategoryResponse createSubcategory(@RequestBody SubcategoryRequest subcategoryRequest) {
+        return subcategoryService.createSubcategory(subcategoryMapper.fromSubcategoryRequest(subcategoryRequest));
     }
 
-    @GetMapping("/{id}")
-    public SubcategoryDTO getSubcategoryById(@PathVariable Long id) {
+    @GetMapping("/subcategories/{id}")
+    public SubcategoryResponse getSubcategoryById(@PathVariable UUID id) {
         return subcategoryService.getSubcategoryById(id)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
     }
 
-    @PutMapping("/{id}")
-    public SubcategoryDTO updateSubcategory(@PathVariable Long id, @RequestBody SubcategoryDTO updatedSubcategoryDTO) {
-        return subcategoryService.updateSubcategory(id, updatedSubcategoryDTO);
+    @PutMapping("/subcategories/{id}")
+    public SubcategoryResponse updateSubcategory(@PathVariable UUID id, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
+        return subcategoryService.updateSubcategory(id, subcategoryMapper.fromSubcategoryRequest(updatedSubcategoryRequest));
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteSubcategory(@PathVariable Long id) {
+    @DeleteMapping("/subcategories/{id}")
+    public void deleteSubcategory(@PathVariable UUID id) {
         subcategoryService.deleteSubcategory(id);
     }
 }

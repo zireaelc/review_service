@@ -9,36 +9,38 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
+public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     Page<Review> findAll(Pageable pageable);
 
     // Фильтрация по диапазону дат
-    Page<Review> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    List<Review> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     // Фильтрация по подкатегории
-    Page<Review> findBySubcategory(Subcategory subcategory, Pageable pageable);
+    List<Review> findBySubcategory(Subcategory subcategory);
 
     // Фильтрация по категории (через подкатегорию)
     @Query("SELECT r FROM Review r JOIN r.subcategory s JOIN s.category c WHERE c.id = :categoryId")
-    Page<Review> findByCategory(@Param("categoryId") Long categoryId, Pageable pageable);
+    List<Review> findByCategory(@Param("categoryId") UUID categoryId);
 
     // Сортировка по оценке
-    Page<Review> findAllByOrderByRatingAsc(Pageable pageable);
-    Page<Review> findAllByOrderByRatingDesc(Pageable pageable);
+    List<Review> findAllByOrderByRatingAsc();
+    List<Review> findAllByOrderByRatingDesc();
 
     // Сортировка по дате
-    Page<Review> findAllByOrderByCreatedAtAsc(Pageable pageable);
-    Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    List<Review> findAllByOrderByCreatedAtAsc();
+    List<Review> findAllByOrderByCreatedAtDesc();
 
     // Комбинированный запрос: фильтрация по диапазону дат и сортировка по дате
-    Page<Review> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    List<Review> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate);
 
     // Комбинированный запрос: фильтрация по подкатегории и сортировка по оценке
-    Page<Review> findBySubcategoryOrderByRatingDesc(Subcategory subcategory, Pageable pageable);
+    List<Review> findBySubcategoryOrderByRatingDesc(Subcategory subcategory);
 
     // Комбинированный запрос: фильтрация по категории и сортировка по дате
     @Query("SELECT r FROM Review r JOIN r.subcategory s JOIN s.category c WHERE c.id = :categoryId ORDER BY r.createdAt DESC")
-    Page<Review> findByCategoryOrderByCreatedAtDesc(@Param("categoryId") Long categoryId, Pageable pageable);
+    List<Review> findByCategoryOrderByCreatedAtDesc(@Param("categoryId") UUID categoryId);
 }
