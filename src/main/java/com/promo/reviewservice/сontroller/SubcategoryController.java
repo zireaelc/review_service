@@ -4,12 +4,14 @@ import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
 import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
 import com.promo.reviewservice.mapper.SubcategoryMapper;
 import com.promo.reviewservice.service.SubcategoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Subcategory")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor

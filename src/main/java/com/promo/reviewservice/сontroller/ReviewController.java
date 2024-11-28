@@ -4,6 +4,7 @@ import com.promo.reviewservice.dto.review.ReviewRequest;
 import com.promo.reviewservice.dto.review.ReviewResponse;
 import com.promo.reviewservice.mapper.ReviewMapper;
 import com.promo.reviewservice.service.ReviewService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Tag(name = "Review")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
