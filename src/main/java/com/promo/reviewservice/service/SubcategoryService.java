@@ -1,8 +1,6 @@
 package com.promo.reviewservice.service;
 
-import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
-import com.promo.reviewservice.exeptions.ResourceNotFoundException;
-import com.promo.reviewservice.mapper.SubcategoryMapper;
+import com.promo.reviewservice.dto.SubcategoryDTO;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.CategoryRepository;
@@ -12,50 +10,63 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SubcategoryService {
     private final SubcategoryRepository subcategoryRepository;
     private final CategoryRepository categoryRepository;
-    private final SubcategoryMapper subcategoryMapper;
 
-    public List<SubcategoryResponse> getAllSubcategories() {
-        return subcategoryMapper.toSubcategoryResponseList(subcategoryRepository.findAll());
+    public List<SubcategoryDTO> getAllSubcategories() {
+        return subcategoryRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public SubcategoryResponse createSubcategory(Subcategory subcategory) {
-        Category category = getCategoryById(subcategory.getCategory().getId());
+    public SubcategoryDTO createSubcategory(SubcategoryDTO subcategoryDTO) {
+        Subcategory subcategory = convertToEntity(subcategoryDTO);
+        Category category = categoryRepository.findById(subcategoryDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
         subcategory.setCategory(category);
-        return subcategoryMapper.toSubcategoryResponse(subcategoryRepository.save(subcategory));
+        subcategory = subcategoryRepository.save(subcategory);
+        return convertToDTO(subcategory);
     }
 
-    public Optional<SubcategoryResponse> getSubcategoryById(UUID id) {
-        return Optional.of(subcategoryMapper.toSubcategoryResponse(subcategoryRepository.findById(id).get()));
+    public Optional<SubcategoryDTO> getSubcategoryById(Long id) {
+        return subcategoryRepository.findById(id)
+                .map(this::convertToDTO);
     }
 
-    public SubcategoryResponse updateSubcategory(UUID id, Subcategory updatedSubcategory) {
-        var result = subcategoryRepository.findById(id)
+    public SubcategoryDTO updateSubcategory(Long id, SubcategoryDTO updatedSubcategoryDTO) {
+        return subcategoryRepository.findById(id)
                 .map(subcategory -> {
-                    subcategory.setName(updatedSubcategory.getName());
-                    Category category = getCategoryById(updatedSubcategory.getCategory().getId());
+                    subcategory.setName(updatedSubcategoryDTO.getName());
+                    Category category = categoryRepository.findById(updatedSubcategoryDTO.getCategoryId())
+                            .orElseThrow(() -> new RuntimeException("Category not found"));
                     subcategory.setCategory(category);
-                    return subcategoryRepository.save(subcategory);
+                    subcategory = subcategoryRepository.save(subcategory);
+                    return convertToDTO(subcategory);
                 })
-                .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + id));
-        return subcategoryMapper.toSubcategoryResponse(result);
+                .orElseThrow(() -> new RuntimeException("Subcategory not found"));
     }
 
-    public void deleteSubcategory(UUID id) {
-        if (!subcategoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Subcategory not found with id: " + id);
-        }
+    public void deleteSubcategory(Long id) {
         subcategoryRepository.deleteById(id);
     }
 
-    private Category getCategoryById(UUID categoryId) {
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+    private SubcategoryDTO convertToDTO(Subcategory subcategory) {
+        SubcategoryDTO subcategoryDTO = new SubcategoryDTO();
+        subcategoryDTO.setId(subcategory.getId());
+        subcategoryDTO.setName(subcategory.getName());
+        subcategoryDTO.setCategoryId(subcategory.getCategory().getId());
+        return subcategoryDTO;
+    }
+
+    private Subcategory convertToEntity(SubcategoryDTO subcategoryDTO) {
+        Subcategory subcategory = new Subcategory();
+        subcategory.setId(subcategoryDTO.getId());
+        subcategory.setName(subcategoryDTO.getName());
+        return subcategory;
     }
 }

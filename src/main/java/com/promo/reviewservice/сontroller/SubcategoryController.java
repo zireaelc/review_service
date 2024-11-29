@@ -1,45 +1,41 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
-import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
-import com.promo.reviewservice.mapper.SubcategoryMapper;
+import com.promo.reviewservice.dto.SubcategoryDTO;
 import com.promo.reviewservice.service.SubcategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("/subcategories")
 @RequiredArgsConstructor
 public class SubcategoryController {
     private final SubcategoryService subcategoryService;
-    private final SubcategoryMapper subcategoryMapper;
 
-    @GetMapping("/subcategories")
-    public List<SubcategoryResponse> getAllSubcategories() {
+    @GetMapping
+    public List<SubcategoryDTO> getAllSubcategory() {
         return subcategoryService.getAllSubcategories();
     }
 
-    @PostMapping("/subcategories")
-    public SubcategoryResponse createSubcategory(@RequestBody SubcategoryRequest subcategoryRequest) {
-        return subcategoryService.createSubcategory(subcategoryMapper.fromSubcategoryRequest(subcategoryRequest));
+    @PostMapping
+    public SubcategoryDTO createSubcategory(@RequestBody SubcategoryDTO subcategoryDTO) {
+        return subcategoryService.createSubcategory(subcategoryDTO);
     }
 
-    @GetMapping("/subcategories/{id}")
-    public SubcategoryResponse getSubcategoryById(@PathVariable UUID id) {
+    @GetMapping("/{id}")
+    public SubcategoryDTO getSubcategoryById(@PathVariable Long id) {
         return subcategoryService.getSubcategoryById(id)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
     }
 
-    @PutMapping("/subcategories/{id}")
-    public SubcategoryResponse updateSubcategory(@PathVariable UUID id, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
-        return subcategoryService.updateSubcategory(id, subcategoryMapper.fromSubcategoryRequest(updatedSubcategoryRequest));
+    @PutMapping("/{id}")
+    public SubcategoryDTO updateSubcategory(@PathVariable Long id, @RequestBody SubcategoryDTO updatedSubcategoryDTO) {
+        return subcategoryService.updateSubcategory(id, updatedSubcategoryDTO);
     }
 
-    @DeleteMapping("/subcategories/{id}")
-    public void deleteSubcategory(@PathVariable UUID id) {
+    @DeleteMapping("/{id}")
+    public void deleteSubcategory(@PathVariable Long id) {
         subcategoryService.deleteSubcategory(id);
     }
 }

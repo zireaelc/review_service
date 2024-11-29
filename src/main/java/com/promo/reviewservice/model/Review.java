@@ -1,11 +1,12 @@
 package com.promo.reviewservice.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Entity
@@ -13,12 +14,14 @@ import java.util.UUID;
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    private Long id;
 
     @Column
     private String text;
 
     @Column(nullable = false)
+    @Min(1)
+    @Max(5)
     private int rating;
 
     @CreationTimestamp

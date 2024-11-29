@@ -1,45 +1,41 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.category.CategoryRequest;
-import com.promo.reviewservice.dto.category.CategoryResponse;
-import com.promo.reviewservice.mapper.CategoryMapper;
+import com.promo.reviewservice.dto.CategoryDTO;
 import com.promo.reviewservice.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("/categories")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
 
-    @GetMapping("/categories")
-    public List<CategoryResponse> getAllCategories() {
+    @GetMapping
+    public List<CategoryDTO> getAllCategory() {
         return categoryService.getAllCategories();
     }
 
-    @PostMapping("/categories")
-    public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
-        return categoryService.createCategory(categoryMapper.fromCategoryRequest(categoryRequest));
+    @PostMapping
+    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
+        return categoryService.createCategory(categoryDTO);
     }
 
-    @GetMapping("/categories/{id}")
-    public CategoryResponse getCategoryById(@PathVariable UUID id) {
+    @GetMapping("/{id}")
+    public CategoryDTO getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    @PutMapping("/categories/{id}")
-    public CategoryResponse updateCategory(@PathVariable UUID id, @RequestBody CategoryRequest updatedCategoryRequest) {
-        return categoryService.updateCategory(id, categoryMapper.fromCategoryRequest(updatedCategoryRequest));
+    @PutMapping("/{id}")
+    public CategoryDTO updateCategory(@PathVariable Long id, @RequestBody CategoryDTO updatedCategoryDTO) {
+        return categoryService.updateCategory(id, updatedCategoryDTO);
     }
 
-    @DeleteMapping("/categories/{id}")
-    public void deleteCategory(@PathVariable UUID id) {
+    @DeleteMapping("/{id}")
+    public void deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
     }
 }
