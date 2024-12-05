@@ -11,37 +11,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Category")
+@Tag(name = "Категории")
 @RestController
-@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
     private final CategoryMapper categoryMapper;
 
-    @GetMapping("/categories")
+    @GetMapping("/api/v1/categories")
     public List<CategoryResponse> getAllCategories() {
         return categoryService.getAllCategories();
     }
 
-    @PostMapping("/categories")
+    @PostMapping("/api/v1/categories")
     public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
         return categoryService.createCategory(categoryMapper.fromCategoryRequest(categoryRequest));
     }
 
-    @GetMapping("/categories/{id}")
-    public CategoryResponse getCategoryById(@PathVariable UUID id) {
-        return categoryService.getCategoryById(id)
+    @GetMapping("/api/v1/categories/{categoryId}")
+    public CategoryResponse getCategoryById(@PathVariable UUID categoryId) {
+        return categoryService.getCategoryById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    @PutMapping("/categories/{id}")
-    public CategoryResponse updateCategory(@PathVariable UUID id, @RequestBody CategoryRequest updatedCategoryRequest) {
-        return categoryService.updateCategory(id, categoryMapper.fromCategoryRequest(updatedCategoryRequest));
+    @PutMapping("/api/v1/categories/{categoryId}")
+    public CategoryResponse updateCategory(@PathVariable UUID categoryId, @RequestBody CategoryRequest updatedCategoryRequest) {
+        return categoryService.updateCategory(categoryId, categoryMapper.fromCategoryRequest(updatedCategoryRequest));
     }
 
-    @DeleteMapping("/categories/{id}")
-    public void deleteCategory(@PathVariable UUID id) {
-        categoryService.deleteCategory(id);
+    @DeleteMapping("/api/v1/categories/{categoryId}")
+    public void deleteCategory(@PathVariable UUID categoryId) {
+        categoryService.deleteCategory(categoryId);
     }
 }

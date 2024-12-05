@@ -9,7 +9,8 @@ CREATE TABLE category (
 -- Таблица subcategory
 CREATE TABLE subcategory (
     id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    category_id UUID
 );
 
 -- Таблица review
@@ -17,7 +18,8 @@ CREATE TABLE review (
     id UUID PRIMARY KEY,
     text TEXT,
     rating INT NOT NULL,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    subcategory_id UUID
 );
 
 -- Таблица users

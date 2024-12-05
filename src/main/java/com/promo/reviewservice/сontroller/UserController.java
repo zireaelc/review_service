@@ -9,19 +9,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "User")
+@Tag(name = "Инфо о пользователе")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
 public class UserController {
     //Под авторизацией всем
-    @GetMapping("/promo/all-auth")
+    @GetMapping("/api/v1/promo/all-auth")
     public String getInfo(@AuthenticationPrincipal UserDetails user) {
         return user.getUsername();
     }
 
     //Только админу
-    @GetMapping("/promo/admin")
+    @GetMapping("/api/v1/promo/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public String getInfoForAdmin(@AuthenticationPrincipal UserDetails user) {
         return user.getUsername();

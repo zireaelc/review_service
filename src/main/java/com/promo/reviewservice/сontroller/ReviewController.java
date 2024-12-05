@@ -13,15 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Tag(name = "Review")
+@Tag(name = "Отзывы")
 @RestController
-@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
     private final ReviewMapper reviewMapper;
 
-    @GetMapping("/reviews")
+    @GetMapping("/api/v1/reviews")
     public Page<ReviewResponse> getAllReviews(@RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size,
                                               @RequestParam(defaultValue = "createdAt,desc") String sort) {
@@ -29,35 +28,35 @@ public class ReviewController {
         return reviewService.getAllReviews(pageable);
     }
 
-    @PostMapping("/reviews")
+    @PostMapping("/api/v1/reviews")
     public ReviewResponse createReview(@RequestBody ReviewRequest reviewRequest) {
         return reviewService.createReview(reviewMapper.fromReviewRequest(reviewRequest));
     }
 
-    @GetMapping("/reviews/{id}")
-    public ReviewResponse getReviewById(@PathVariable UUID id) {
-        return reviewService.getReviewById(id)
+    @GetMapping("/api/v1/reviews/{reviewId}")
+    public ReviewResponse getReviewById(@PathVariable UUID reviewId) {
+        return reviewService.getReviewById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
     }
 
-    @PutMapping("/reviews/{id}")
-    public ReviewResponse updateReview(@PathVariable UUID id, @RequestBody ReviewRequest updatedReviewRequest) {
-        return reviewService.updateReview(id, reviewMapper.fromReviewRequest(updatedReviewRequest));
+    @PutMapping("/api/v1/reviews/{reviewId}")
+    public ReviewResponse updateReview(@PathVariable UUID reviewId, @RequestBody ReviewRequest updatedReviewRequest) {
+        return reviewService.updateReview(reviewId, reviewMapper.fromReviewRequest(updatedReviewRequest));
     }
 
-    @DeleteMapping("/reviews/{id}")
-    public void deleteReview(@PathVariable UUID id) {
-        reviewService.deleteReview(id);
+    @DeleteMapping("/api/v1/reviews/{reviewId}")
+    public void deleteReview(@PathVariable UUID reviewId) {
+        reviewService.deleteReview(reviewId);
     }
 
-    @GetMapping("/reviews/by-date-range")
+    @GetMapping("/api/v1/reviews/by-date-range")
     public Page<ReviewResponse> getReviewsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        Pageable pageable = createPageable(page, size, sort);
+        var pageable = createPageable(page, size, sort);
         return reviewService.getReviewsByDateRange(startDate, endDate, pageable);
     }
 
@@ -66,7 +65,7 @@ public class ReviewController {
                                                        @RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size,
                                                        @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        Pageable pageable = createPageable(page, size, sort);
+        var pageable = createPageable(page, size, sort);
         return reviewService.getReviewsBySubcategory(subcategoryId, pageable);
     }
 
@@ -75,35 +74,35 @@ public class ReviewController {
                                                     @RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "10") int size,
                                                     @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        Pageable pageable = createPageable(page, size, sort);
+        var pageable = createPageable(page, size, sort);
         return reviewService.getReviewsByCategory(categoryId, pageable);
     }
 
     @GetMapping("/reviews/sorted-by-rating-asc")
     public Page<ReviewResponse> getReviewsSortedByRatingAsc(@RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").ascending());
+        var pageable = PageRequest.of(page, size, Sort.by("rating").ascending());
         return reviewService.getReviewsSortedByRatingAsc(pageable);
     }
 
     @GetMapping("/reviews/sorted-by-rating-desc")
     public Page<ReviewResponse> getReviewsSortedByRatingDesc(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
+        var pageable = PageRequest.of(page, size, Sort.by("rating").descending());
         return reviewService.getReviewsSortedByRatingDesc(pageable);
     }
 
     @GetMapping("/reviews/sorted-by-date-asc")
     public Page<ReviewResponse> getReviewsSortedByDateAsc(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+        var pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
         return reviewService.getReviewsSortedByDateAsc(pageable);
     }
 
     @GetMapping("/reviews/sorted-by-date-desc")
     public Page<ReviewResponse> getReviewsSortedByDateDesc(@RequestParam(defaultValue = "0") int page,
                                                           @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return reviewService.getReviewsSortedByDateDesc(pageable);
     }
 
@@ -114,7 +113,7 @@ public class ReviewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        Pageable pageable = createPageable(page, size, sort);
+        var pageable = createPageable(page, size, sort);
         return reviewService.getReviewsByDateRangeSortedByDateDesc(startDate, endDate, pageable);
     }
 
@@ -122,7 +121,7 @@ public class ReviewController {
     public Page<ReviewResponse> getReviewsBySubcategorySortedByRatingDesc(@PathVariable UUID subcategoryId,
                                                                          @RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending());
+        var pageable = PageRequest.of(page, size, Sort.by("rating").descending());
         return reviewService.getReviewsBySubcategorySortedByRatingDesc(subcategoryId, pageable);
     }
 
@@ -130,7 +129,7 @@ public class ReviewController {
     public Page<ReviewResponse> getReviewsByCategorySortedByDateDesc(@PathVariable UUID categoryId,
                                                                     @RequestParam(defaultValue = "0") int page,
                                                                     @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return reviewService.getReviewsByCategorySortedByDateDesc(categoryId, pageable);
     }
 

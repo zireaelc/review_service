@@ -11,21 +11,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Security")
+@Tag(name = "Аутентификация")
 @RestController
-@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class SecurityUserController {
     private final AuthenticationService authenticationService;
 
     //Регистрация пользователя
-    @PostMapping("/auth/sign-up")
+    @PostMapping("/api/v1/auth/sign-up")
     public TokenResponse signUp(@RequestBody SignUpRequest request) {
         return authenticationService.signUp(request);
     }
 
     //Авторизация пользователя
-    @PostMapping("/auth/sign-in")
+    @PostMapping("/api/v1/auth/sign-in")
     public TokenResponse signIn(@RequestBody SignInRequest request) {
         return authenticationService.signIn(request);
     }

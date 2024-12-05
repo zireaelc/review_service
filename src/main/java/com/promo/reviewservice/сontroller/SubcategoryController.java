@@ -11,37 +11,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Subcategory")
+@Tag(name = "Подкатегории")
 @RestController
-@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class SubcategoryController {
     private final SubcategoryService subcategoryService;
     private final SubcategoryMapper subcategoryMapper;
 
-    @GetMapping("/subcategories")
+    @GetMapping("/api/v1/subcategories")
     public List<SubcategoryResponse> getAllSubcategories() {
         return subcategoryService.getAllSubcategories();
     }
 
-    @PostMapping("/subcategories")
+    @PostMapping("/api/v1/subcategories")
     public SubcategoryResponse createSubcategory(@RequestBody SubcategoryRequest subcategoryRequest) {
         return subcategoryService.createSubcategory(subcategoryMapper.fromSubcategoryRequest(subcategoryRequest));
     }
 
-    @GetMapping("/subcategories/{id}")
-    public SubcategoryResponse getSubcategoryById(@PathVariable UUID id) {
-        return subcategoryService.getSubcategoryById(id)
+    @GetMapping("/api/v1/subcategories/{subcategoryId}")
+    public SubcategoryResponse getSubcategoryById(@PathVariable UUID subcategoryId) {
+        return subcategoryService.getSubcategoryById(subcategoryId)
                 .orElseThrow(() -> new RuntimeException("Subcategory not found"));
     }
 
-    @PutMapping("/subcategories/{id}")
-    public SubcategoryResponse updateSubcategory(@PathVariable UUID id, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
-        return subcategoryService.updateSubcategory(id, subcategoryMapper.fromSubcategoryRequest(updatedSubcategoryRequest));
+    @PutMapping("/api/v1/subcategories/{subcategoryId}")
+    public SubcategoryResponse updateSubcategory(@PathVariable UUID subcategoryId, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
+        return subcategoryService.updateSubcategory(subcategoryId, subcategoryMapper.fromSubcategoryRequest(updatedSubcategoryRequest));
     }
 
-    @DeleteMapping("/subcategories/{id}")
-    public void deleteSubcategory(@PathVariable UUID id) {
-        subcategoryService.deleteSubcategory(id);
+    @DeleteMapping("/api/v1/subcategories/{subcategoryId}")
+    public void deleteSubcategory(@PathVariable UUID subcategoryId) {
+        subcategoryService.deleteSubcategory(subcategoryId);
     }
 }
