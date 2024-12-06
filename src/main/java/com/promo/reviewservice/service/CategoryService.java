@@ -2,7 +2,7 @@ package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.category.CategoryResponse;
 import com.promo.reviewservice.exeptions.ResourceNotFoundException;
-import com.promo.reviewservice.mapper.CategoryMapper;
+import com.promo.reviewservice.mapper.CategoryResponseMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +16,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
-    private final CategoryMapper categoryMapper;
+    private final CategoryResponseMapper categoryMapper;
 
     public List<CategoryResponse> getAllCategories() {
-        return categoryMapper.toCategoryResponseList(categoryRepository.findAll());
+        return categoryMapper.map(categoryRepository.findAll());
     }
 
     public CategoryResponse createCategory(Category category) {
         category = categoryRepository.save(category);
-        return categoryMapper.toCategoryResponse(category);
+        return categoryMapper.map(category);
     }
 
     public Optional<CategoryResponse> getCategoryById(UUID id) {
-        return Optional.of(categoryMapper.toCategoryResponse(categoryRepository.findById(id).get()));
+        return Optional.of(categoryMapper.map(categoryRepository.findById(id).get()));
     }
 
     public CategoryResponse updateCategory(UUID id, Category updatedCategory) {
@@ -38,7 +38,7 @@ public class CategoryService {
                     return categoryRepository.save(category);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
-        return categoryMapper.toCategoryResponse(result);
+        return categoryMapper.map(result);
     }
 
     public void deleteCategory(UUID id) {

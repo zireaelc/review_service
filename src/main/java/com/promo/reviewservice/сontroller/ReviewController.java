@@ -2,7 +2,7 @@ package com.promo.reviewservice.сontroller;
 
 import com.promo.reviewservice.dto.review.ReviewRequest;
 import com.promo.reviewservice.dto.review.ReviewResponse;
-import com.promo.reviewservice.mapper.ReviewMapper;
+import com.promo.reviewservice.mapper.ReviewRequestMapper;
 import com.promo.reviewservice.service.ReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
-    private final ReviewMapper reviewMapper;
+    private final ReviewRequestMapper reviewMapper;
 
     @GetMapping("/api/v1/reviews")
     public Page<ReviewResponse> getAllReviews(@RequestParam(defaultValue = "0") int page,
@@ -30,7 +30,7 @@ public class ReviewController {
 
     @PostMapping("/api/v1/reviews")
     public ReviewResponse createReview(@RequestBody ReviewRequest reviewRequest) {
-        return reviewService.createReview(reviewMapper.fromReviewRequest(reviewRequest));
+        return reviewService.createReview(reviewMapper.map(reviewRequest));
     }
 
     @GetMapping("/api/v1/reviews/{reviewId}")
@@ -41,7 +41,7 @@ public class ReviewController {
 
     @PutMapping("/api/v1/reviews/{reviewId}")
     public ReviewResponse updateReview(@PathVariable UUID reviewId, @RequestBody ReviewRequest updatedReviewRequest) {
-        return reviewService.updateReview(reviewId, reviewMapper.fromReviewRequest(updatedReviewRequest));
+        return reviewService.updateReview(reviewId, reviewMapper.map(updatedReviewRequest));
     }
 
     @DeleteMapping("/api/v1/reviews/{reviewId}")

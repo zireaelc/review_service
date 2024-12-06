@@ -2,7 +2,7 @@ package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
 import com.promo.reviewservice.exeptions.ResourceNotFoundException;
-import com.promo.reviewservice.mapper.SubcategoryMapper;
+import com.promo.reviewservice.mapper.SubcategoryResponseMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.CategoryRepository;
@@ -19,20 +19,20 @@ import java.util.UUID;
 public class SubcategoryService {
     private final SubcategoryRepository subcategoryRepository;
     private final CategoryRepository categoryRepository;
-    private final SubcategoryMapper subcategoryMapper;
+    private final SubcategoryResponseMapper subcategoryMapper;
 
     public List<SubcategoryResponse> getAllSubcategories() {
-        return subcategoryMapper.toSubcategoryResponseList(subcategoryRepository.findAll());
+        return subcategoryMapper.map(subcategoryRepository.findAll());
     }
 
     public SubcategoryResponse createSubcategory(Subcategory subcategory) {
         Category category = getCategoryById(subcategory.getCategory().getId());
         subcategory.setCategory(category);
-        return subcategoryMapper.toSubcategoryResponse(subcategoryRepository.save(subcategory));
+        return subcategoryMapper.map(subcategoryRepository.save(subcategory));
     }
 
     public Optional<SubcategoryResponse> getSubcategoryById(UUID id) {
-        return Optional.of(subcategoryMapper.toSubcategoryResponse(subcategoryRepository.findById(id).get()));
+        return Optional.of(subcategoryMapper.map(subcategoryRepository.findById(id).get()));
     }
 
     public SubcategoryResponse updateSubcategory(UUID id, Subcategory updatedSubcategory) {
@@ -44,7 +44,7 @@ public class SubcategoryService {
                     return subcategoryRepository.save(subcategory);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + id));
-        return subcategoryMapper.toSubcategoryResponse(result);
+        return subcategoryMapper.map(result);
     }
 
     public void deleteSubcategory(UUID id) {

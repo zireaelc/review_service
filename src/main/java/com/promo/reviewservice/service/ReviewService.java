@@ -2,7 +2,7 @@ package com.promo.reviewservice.service;
 
 import com.promo.reviewservice.dto.review.ReviewResponse;
 import com.promo.reviewservice.exeptions.ResourceNotFoundException;
-import com.promo.reviewservice.mapper.ReviewMapper;
+import com.promo.reviewservice.mapper.ReviewResponseMapper;
 import com.promo.reviewservice.model.Review;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.ReviewRepository;
@@ -26,11 +26,11 @@ public class ReviewService {
     private final UserService userService;
     private final SubcategoryRepository subcategoryRepository;
     private final EmailService emailService;
-    private final ReviewMapper reviewMapper;
+    private final ReviewResponseMapper reviewMapper;
 
     public Page<ReviewResponse> getAllReviews(Pageable pageable) {
         var reviews = reviewRepository.findAll();
-        var reviewsDTO = reviewMapper.toReviewResponseList(reviews);
+        var reviewsDTO = reviewMapper.map(reviews);
         var page = new PageImpl<>(reviewsDTO, pageable, reviewsDTO.size());
         return page;
     }
@@ -43,7 +43,7 @@ public class ReviewService {
         review.setSubcategory(subcategory);
         review = reviewRepository.save(review);
         sendReviewNotification(review, subcategory);
-        return reviewMapper.toReviewResponse(review);
+        return reviewMapper.map(review);
     }
 
     private void sendReviewNotification(Review review, Subcategory subcategory) {
@@ -76,7 +76,7 @@ public class ReviewService {
     }
 
     public Optional<ReviewResponse> getReviewById(UUID id) {
-        return Optional.of(reviewMapper.toReviewResponse(reviewRepository.findById(id).get()));
+        return Optional.of(reviewMapper.map(reviewRepository.findById(id).get()));
     }
 
     public ReviewResponse updateReview(UUID id, Review updatedReview) {
@@ -92,7 +92,7 @@ public class ReviewService {
                     return review;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
-        return reviewMapper.toReviewResponse(result);
+        return reviewMapper.map(result);
     }
 
     public void deleteReview(UUID id) {
@@ -102,57 +102,59 @@ public class ReviewService {
         reviewRepository.deleteById(id);
     }
 
-    public Page<ReviewResponse> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        var reviews = reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+    public Page<ReviewResponse> getReviewsByDateRange(LocalDateTime startDate, LocalDateTime endDate,
+                                                      Pageable pageable) {
+        var reviews = reviewRepository.findByCreatedAtBetween(startDate, endDate, pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsBySubcategory(UUID subcategoryId, Pageable pageable) {
         var subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
-        var reviews = reviewRepository.findBySubcategory(subcategory, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findBySubcategory(subcategory, pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsByCategory(UUID categoryId, Pageable pageable) {
-        var reviews = reviewRepository.findByCategory(categoryId, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findByCategory(categoryId, pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsSortedByRatingAsc(Pageable pageable) {
-        var reviews = reviewRepository.findAllByOrderByRatingAsc(pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findAllByOrderByRatingAsc(pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsSortedByRatingDesc(Pageable pageable) {
-        var reviews = reviewRepository.findAllByOrderByRatingDesc(pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findAllByOrderByRatingDesc(pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsSortedByDateAsc(Pageable pageable) {
-        var reviews = reviewRepository.findAllByOrderByCreatedAtAsc(pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findAllByOrderByCreatedAtAsc(pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsSortedByDateDesc(Pageable pageable) {
-        var reviews = reviewRepository.findAllByOrderByCreatedAtDesc(pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return reviews.map(reviewMapper::map);
     }
 
-    public Page<ReviewResponse> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        var reviews = reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+    public Page<ReviewResponse> getReviewsByDateRangeSortedByDateDesc(LocalDateTime startDate,
+                                                                      LocalDateTime endDate, Pageable pageable) {
+        var reviews = reviewRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate, pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsBySubcategorySortedByRatingDesc(UUID subcategoryId, Pageable pageable) {
         var subcategory = subcategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategory not found with id: " + subcategoryId));
-        var reviews = reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findBySubcategoryOrderByRatingDesc(subcategory, pageable);
+        return reviews.map(reviewMapper::map);
     }
 
     public Page<ReviewResponse> getReviewsByCategorySortedByDateDesc(UUID categoryId, Pageable pageable) {
-        var reviews = reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable).getContent();
-        return new PageImpl<>(reviewMapper.toReviewResponseList(reviews), pageable, reviews.size());
+        var reviews = reviewRepository.findByCategoryOrderByCreatedAtDesc(categoryId, pageable);
+        return reviews.map(reviewMapper::map);
     }
 }

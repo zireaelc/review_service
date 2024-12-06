@@ -2,7 +2,7 @@ package com.promo.reviewservice.сontroller;
 
 import com.promo.reviewservice.dto.category.CategoryRequest;
 import com.promo.reviewservice.dto.category.CategoryResponse;
-import com.promo.reviewservice.mapper.CategoryMapper;
+import com.promo.reviewservice.mapper.CategoryRequestMapper;
 import com.promo.reviewservice.service.CategoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
+    private final CategoryRequestMapper categoryMapper;
 
     @GetMapping("/api/v1/categories")
     public List<CategoryResponse> getAllCategories() {
@@ -25,7 +25,7 @@ public class CategoryController {
 
     @PostMapping("/api/v1/categories")
     public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
-        return categoryService.createCategory(categoryMapper.fromCategoryRequest(categoryRequest));
+        return categoryService.createCategory(categoryMapper.map(categoryRequest));
     }
 
     @GetMapping("/api/v1/categories/{categoryId}")
@@ -35,8 +35,9 @@ public class CategoryController {
     }
 
     @PutMapping("/api/v1/categories/{categoryId}")
-    public CategoryResponse updateCategory(@PathVariable UUID categoryId, @RequestBody CategoryRequest updatedCategoryRequest) {
-        return categoryService.updateCategory(categoryId, categoryMapper.fromCategoryRequest(updatedCategoryRequest));
+    public CategoryResponse updateCategory(@PathVariable UUID categoryId,
+                                           @RequestBody CategoryRequest updatedCategoryRequest) {
+        return categoryService.updateCategory(categoryId, categoryMapper.map(updatedCategoryRequest));
     }
 
     @DeleteMapping("/api/v1/categories/{categoryId}")

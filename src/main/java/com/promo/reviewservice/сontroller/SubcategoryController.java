@@ -2,7 +2,7 @@ package com.promo.reviewservice.сontroller;
 
 import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
 import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
-import com.promo.reviewservice.mapper.SubcategoryMapper;
+import com.promo.reviewservice.mapper.SubcategoryRequestMapper;
 import com.promo.reviewservice.service.SubcategoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SubcategoryController {
     private final SubcategoryService subcategoryService;
-    private final SubcategoryMapper subcategoryMapper;
+    private final SubcategoryRequestMapper subcategoryMapper;
 
     @GetMapping("/api/v1/subcategories")
     public List<SubcategoryResponse> getAllSubcategories() {
@@ -25,7 +25,7 @@ public class SubcategoryController {
 
     @PostMapping("/api/v1/subcategories")
     public SubcategoryResponse createSubcategory(@RequestBody SubcategoryRequest subcategoryRequest) {
-        return subcategoryService.createSubcategory(subcategoryMapper.fromSubcategoryRequest(subcategoryRequest));
+        return subcategoryService.createSubcategory(subcategoryMapper.map(subcategoryRequest));
     }
 
     @GetMapping("/api/v1/subcategories/{subcategoryId}")
@@ -35,8 +35,9 @@ public class SubcategoryController {
     }
 
     @PutMapping("/api/v1/subcategories/{subcategoryId}")
-    public SubcategoryResponse updateSubcategory(@PathVariable UUID subcategoryId, @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
-        return subcategoryService.updateSubcategory(subcategoryId, subcategoryMapper.fromSubcategoryRequest(updatedSubcategoryRequest));
+    public SubcategoryResponse updateSubcategory(@PathVariable UUID subcategoryId,
+                                                 @RequestBody SubcategoryRequest updatedSubcategoryRequest) {
+        return subcategoryService.updateSubcategory(subcategoryId, subcategoryMapper.map(updatedSubcategoryRequest));
     }
 
     @DeleteMapping("/api/v1/subcategories/{subcategoryId}")
