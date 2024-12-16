@@ -1,26 +1,30 @@
 package com.promo.reviewservice;
 
 import com.promo.reviewservice.dto.review.ReviewRequest;
+import com.promo.reviewservice.dto.review.ReviewResponse;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
+import com.promo.reviewservice.mapper.ReviewRequestMapper;
+import com.promo.reviewservice.mapper.ReviewResponseMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Review;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.ReviewRepository;
 import com.promo.reviewservice.repository.SubcategoryRepository;
-import com.promo.reviewservice.service.EmailService;
 import com.promo.reviewservice.service.ReviewService;
-import com.promo.reviewservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,218 +33,208 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class ReviewServiceTest {
-//    @Mock
-//    private ReviewRepository reviewRepository;
-//
-//    @Mock
-//    private UserService userService;
-//
-//    @Mock
-//    private SubcategoryRepository subcategoryRepository;
-//
-//    @Mock
-//    private EmailService emailService;
-//
-//    @InjectMocks
-//    private ReviewService reviewService;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//        // Установка текущего пользователя для авторизации
-//        UserDetails userDetails = User.withUsername("testUser")
-//                .password("password")
-//                .roles("USER")
-//                .build();
-//        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//        SecurityContext securityContext = SecurityContextHolder.getContext();
-//        securityContext.setAuthentication(authentication);
-//    }
-//
-//    @Test
-//    void testGetReviewById() {
-//        // Arrange
-//        Review review = new Review();
-//        review.setId(UUID.fromString("1"));
-//        review.setText("Review 1");
-//        review.setRating(5);
-//        Subcategory subcategory1 = new Subcategory();
-//        subcategory1.setId(UUID.fromString("1"));
-//        subcategory1.setName("Subcategory 1");
-//        review.setSubcategory(subcategory1);
-//
-//        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(review));
-//
-//        // Act
-//        Optional<ReviewRequest> reviewDTO = reviewService.getReviewById(UUID.fromString("1"));
-//
-//        // Assert
-//        assertTrue(reviewDTO.isPresent());
-//        assertEquals("Review 1", reviewDTO.get().getText());
-//        assertEquals(5, reviewDTO.get().getRating());
-//        assertEquals(UUID.fromString("1"), reviewDTO.get().getSubcategoryId());
-//    }
-//
-//    @Test
-//    void testGetReviewByIdNotFound() {
-//        // Arrange
-//        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
-//
-//        // Act
-//        Optional<ReviewRequest> reviewDTO = reviewService.getReviewById(UUID.fromString("1"));
-//
-//        // Assert
-//        assertFalse(reviewDTO.isPresent());
-//    }
-//
-//    @Test
-//    void testCreateReview() {
-//        // Arrange
-//        ReviewRequest reviewRequest = new ReviewRequest();
-//        reviewRequest.setText("New Review");
-//        reviewRequest.setRating(5);
-//        reviewRequest.setSubcategoryId(UUID.fromString("1"));
-//
-//        Subcategory subcategory = new Subcategory();
-//        subcategory.setId(UUID.fromString("1"));
-//        subcategory.setName("Subcategory 1");
-//        Category category = new Category();
-//        category.setId(UUID.fromString("1"));
-//        category.setName("Category 1");
-//        subcategory.setCategory(category);
-//
-//        Review savedReview = new Review();
-//        savedReview.setId(UUID.fromString("1"));
-//        savedReview.setText("New Review");
-//        savedReview.setRating(5);
-//        savedReview.setSubcategory(subcategory);
-//
-//        when(subcategoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(subcategory));
-//        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
-//
-//        // Act
-//        ReviewRequest createdReviewRequest = reviewService.createReview(reviewRequest);
-//
-//        // Assert
-//        assertNotNull(createdReviewRequest.getId());
-//        assertEquals("New Review", createdReviewRequest.getText());
-//        assertEquals(5, createdReviewRequest.getRating());
-//        assertEquals(UUID.fromString("1"), createdReviewRequest.getSubcategoryId());
-//    }
-//
-//    @Test
-//    void testCreateReviewSubcategoryNotFound() {
-//        // Arrange
-//        ReviewRequest reviewRequest = new ReviewRequest();
-//        reviewRequest.setText("New Review");
-//        reviewRequest.setRating(5);
-//        reviewRequest.setSubcategoryId(UUID.fromString("1"));
-//
-//        when(subcategoryRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
-//
-//        // Act & Assert
-//        assertThrows(RuntimeException.class, () -> {
-//            reviewService.createReview(reviewRequest);
-//        });
-//    }
-//
-//    @Test
-//    void testUpdateReview() {
-//        // Arrange
-//        Review existingReview = new Review();
-//        existingReview.setId(UUID.fromString("1"));
-//        existingReview.setText("Old Review");
-//        existingReview.setRating(4);
-//        Subcategory subcategory1 = new Subcategory();
-//        subcategory1.setId(UUID.fromString("1"));
-//        subcategory1.setName("Subcategory 1");
-//        Category category = new Category();
-//        category.setId(UUID.fromString("1"));
-//        category.setName("Category 1");
-//        subcategory1.setCategory(category);
-//        existingReview.setSubcategory(subcategory1);
-//
-//        ReviewRequest updatedReviewRequest = new ReviewRequest();
-//        updatedReviewRequest.setText("Updated Review");
-//        updatedReviewRequest.setRating(5);
-//        updatedReviewRequest.setSubcategoryId(UUID.fromString("2"));
-//
-//        Subcategory updatedSubcategory = new Subcategory();
-//        updatedSubcategory.setId(UUID.fromString("2"));
-//        Category category1 = new Category();
-//        category1.setId(UUID.fromString("1"));
-//        category1.setName("Category 1");
-//        updatedSubcategory.setCategory(category);
-//        updatedSubcategory.setName("Subcategory 2");
-//
-//        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(existingReview));
-//        when(subcategoryRepository.findById(UUID.fromString("2"))).thenReturn(Optional.of(updatedSubcategory));
-//        when(reviewRepository.save(any(Review.class))).thenReturn(existingReview);
-//
-//        // Act
-//        ReviewRequest resultDTO = reviewService.updateReview(UUID.fromString("1"), updatedReviewRequest);
-//
-//        // Assert
-//        assertEquals("Updated Review", resultDTO.getText());
-//        assertEquals(5, resultDTO.getRating());
-//        assertEquals(UUID.fromString("2"), resultDTO.getSubcategoryId());
-//    }
-//
-//    @Test
-//    void testUpdateReviewNotFound() {
-//        // Arrange
-//        ReviewRequest updatedReviewRequest = new ReviewRequest();
-//        updatedReviewRequest.setText("Updated Review");
-//        updatedReviewRequest.setRating(5);
-//        updatedReviewRequest.setSubcategoryId(UUID.fromString("2"));
-//
-//        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.empty());
-//
-//        // Act & Assert
-//        assertThrows(RuntimeException.class, () -> {
-//            reviewService.updateReview(UUID.fromString("1"), updatedReviewRequest);
-//        });
-//    }
-//
-//    @Test
-//    void testUpdateReviewSubcategoryNotFound() {
-//        // Arrange
-//        Review existingReview = new Review();
-//        existingReview.setId(UUID.fromString("1"));
-//        existingReview.setText("Old Review");
-//        existingReview.setRating(4);
-//        Subcategory subcategory1 = new Subcategory();
-//        subcategory1.setId(UUID.fromString("1"));
-//        subcategory1.setName("Subcategory 1");
-//        Category category = new Category();
-//        category.setId(UUID.fromString("1"));
-//        category.setName("Category 1");
-//        subcategory1.setCategory(category);
-//        existingReview.setSubcategory(subcategory1);
-//
-//        ReviewRequest updatedReviewRequest = new ReviewRequest();
-//        updatedReviewRequest.setText("Updated Review");
-//        updatedReviewRequest.setRating(5);
-//        updatedReviewRequest.setSubcategoryId(UUID.fromString("2"));
-//
-//        when(reviewRepository.findById(UUID.fromString("1"))).thenReturn(Optional.of(existingReview));
-//        when(subcategoryRepository.findById(UUID.fromString("2"))).thenReturn(Optional.empty());
-//
-//        // Act & Assert
-//        assertThrows(RuntimeException.class, () -> {
-//            reviewService.updateReview(UUID.fromString("1"), updatedReviewRequest);
-//        });
-//    }
-//
-//    @Test
-//    void testDeleteReview() {
-//        // Arrange
-//        doNothing().when(reviewRepository).deleteById(UUID.fromString("1"));
-//
-//        // Act
-//        reviewService.deleteReview(UUID.fromString("1"));
-//
-//        // Assert
-//        verify(reviewRepository, times(1)).deleteById(UUID.fromString("1"));
-//    }
+    @Mock
+    private ReviewRepository reviewRepository;
+
+    @Mock
+    private SubcategoryRepository subcategoryRepository;
+
+    @Mock
+    private ReviewResponseMapper reviewResponseMapper;
+
+    @Mock
+    private ReviewRequestMapper reviewRequestMapper;
+
+    private Review review;
+    private ReviewResponse reviewResponse;
+    private ReviewRequest reviewRequest;
+    private Subcategory subcategory;
+    private Category category;
+
+    @InjectMocks
+    private ReviewService reviewService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        category = new Category();
+        category.setId(UUID.randomUUID());
+        category.setName("Test Category");
+
+        subcategory = new Subcategory();
+        subcategory.setId(UUID.randomUUID());
+        subcategory.setName("Test Subcategory");
+        subcategory.setCategory(category);
+
+        review = new Review();
+        review.setId(UUID.randomUUID());
+        review.setText("Test Review");
+        review.setRating(5);
+        review.setSubcategory(subcategory);
+
+        reviewResponse = new ReviewResponse(
+                review.getId().toString(),
+                review.getText(),
+                review.getRating(),
+                subcategory.getId().toString());
+        reviewRequest = new ReviewRequest(
+                review.getText(),
+                review.getRating(),
+                subcategory.getId().toString());
+    }
+
+    @Test
+    public void testGetAllReviews() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+        when(reviewRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(review)));
+        when(reviewResponseMapper.map(any(Review.class))).thenReturn(reviewResponse);
+
+        // Act
+        Page<ReviewResponse> result = reviewService.getAllReviews(pageable);
+
+        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getContent().size());
+        assertEquals(reviewResponse, result.getContent().get(0));
+    }
+
+    @Test
+    void testGetReviewById() {
+        // Arrange
+        when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(review));
+        when(reviewResponseMapper.map(any(Review.class))).thenReturn(reviewResponse);
+
+        // Act
+        Optional<ReviewResponse> result = reviewService.getReviewById(review.getId());
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(reviewResponse, result.get());
+    }
+
+    @Test
+    void testGetReviewByIdNotFound() {
+        // Arrange
+        UUID nonExistentId = UUID.randomUUID();
+        when(reviewRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> reviewService.getReviewById(nonExistentId));
+    }
+
+    @Test
+    void testCreateReview() {
+        // Arrange
+        when(reviewRequestMapper.map(any(ReviewRequest.class))).thenReturn(review);
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(subcategory));
+        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+        when(reviewResponseMapper.map(any(Review.class))).thenReturn(reviewResponse);
+
+        // Настройка SecurityContext для тестирования getCurrentUsername
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Act
+        ReviewResponse result = reviewService.createReview(reviewRequestMapper.map(reviewRequest));
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(reviewResponse, result);
+    }
+
+    @Test
+    void testCreateReviewSubcategoryNotFound() {
+        // Arrange
+        when(reviewRequestMapper.map(any(ReviewRequest.class))).thenReturn(review);
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> reviewService.createReview(reviewRequestMapper.map(reviewRequest)));
+    }
+
+    @Test
+    void testUpdateReview() {
+        // Arrange
+        Review updatedReview = new Review();
+        updatedReview.setText("Updated Review");
+        updatedReview.setRating(4);
+        updatedReview.setSubcategory(subcategory);
+
+        when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(review));
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(subcategory));
+        when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
+        when(reviewResponseMapper.map(any(Review.class))).thenReturn(
+                new ReviewResponse(
+                        review.getId().toString(),
+                        "Updated Review",
+                        4,
+                        subcategory.getId().toString()));
+
+        // Act
+        ReviewResponse result = reviewService.updateReview(review.getId(), updatedReview);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Updated Review", result.text());
+        assertEquals(4, result.rating());
+    }
+
+    @Test
+    void testUpdateReviewNotFound() {
+        // Arrange
+        UUID nonExistentId = UUID.randomUUID();
+        Review updatedReview = new Review();
+        updatedReview.setText("Updated Review");
+        updatedReview.setRating(4);
+        updatedReview.setSubcategory(subcategory);
+
+        when(reviewRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> reviewService.updateReview(nonExistentId, updatedReview));
+    }
+
+    @Test
+    void testUpdateReviewSubcategoryNotFound() {
+        // Arrange
+        Review updatedReview = new Review();
+        updatedReview.setText("Updated Review");
+        updatedReview.setRating(4);
+        updatedReview.setSubcategory(new Subcategory());
+        updatedReview.getSubcategory().setId(UUID.randomUUID());
+
+        when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(review));
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> reviewService.updateReview(review.getId(), updatedReview));
+    }
+
+    @Test
+    void testDeleteReview() {
+        // Arrange
+        when(reviewRepository.existsById(any(UUID.class))).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> reviewService.deleteReview(review.getId()));
+
+        // Assert
+        verify(reviewRepository, times(1)).deleteById(review.getId());
+    }
+
+    @Test
+    public void testDeleteReviewNotFound() {
+        // Arrange
+        when(reviewRepository.existsById(any(UUID.class))).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> reviewService.deleteReview(review.getId()));
+    }
 }
