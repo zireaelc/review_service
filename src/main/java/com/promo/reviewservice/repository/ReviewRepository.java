@@ -9,8 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
+public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     Page<Review> findAll(Pageable pageable);
 
@@ -22,7 +23,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // Фильтрация по категории (через подкатегорию)
     @Query("SELECT r FROM Review r JOIN r.subcategory s JOIN s.category c WHERE c.id = :categoryId")
-    Page<Review> findByCategory(@Param("categoryId") Long categoryId, Pageable pageable);
+    Page<Review> findByCategory(@Param("categoryId") UUID categoryId, Pageable pageable);
 
     // Сортировка по оценке
     Page<Review> findAllByOrderByRatingAsc(Pageable pageable);
@@ -33,12 +34,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     // Комбинированный запрос: фильтрация по диапазону дат и сортировка по дате
-    Page<Review> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    Page<Review> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate,
+                                                            Pageable pageable);
 
     // Комбинированный запрос: фильтрация по подкатегории и сортировка по оценке
     Page<Review> findBySubcategoryOrderByRatingDesc(Subcategory subcategory, Pageable pageable);
 
     // Комбинированный запрос: фильтрация по категории и сортировка по дате
-    @Query("SELECT r FROM Review r JOIN r.subcategory s JOIN s.category c WHERE c.id = :categoryId ORDER BY r.createdAt DESC")
-    Page<Review> findByCategoryOrderByCreatedAtDesc(@Param("categoryId") Long categoryId, Pageable pageable);
+    @Query("SELECT r FROM Review r JOIN r.subcategory s JOIN s.category c WHERE c.id = :categoryId " +
+            "ORDER BY r.createdAt DESC")
+    Page<Review> findByCategoryOrderByCreatedAtDesc(@Param("categoryId") UUID categoryId, Pageable pageable);
 }

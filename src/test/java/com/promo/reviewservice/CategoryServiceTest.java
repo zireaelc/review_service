@@ -1,6 +1,10 @@
 package com.promo.reviewservice;
 
-import com.promo.reviewservice.dto.CategoryDTO;
+import com.promo.reviewservice.dto.category.CategoryRequest;
+import com.promo.reviewservice.dto.category.CategoryResponse;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
+import com.promo.reviewservice.mapper.CategoryRequestMapper;
+import com.promo.reviewservice.mapper.CategoryResponseMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.repository.CategoryRepository;
 import com.promo.reviewservice.service.CategoryService;
@@ -10,9 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,128 +26,139 @@ public class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private CategoryResponseMapper categoryResponseMapper;
+
+    @Mock
+    private CategoryRequestMapper categoryRequestMapper;
+
     @InjectMocks
     private CategoryService categoryService;
+
+    private Category category;
+    private CategoryResponse categoryResponse;
+    private CategoryRequest categoryRequest;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        category = new Category();
+        category.setId(UUID.randomUUID());
+        category.setName("Test Category");
+        categoryResponse = new CategoryResponse(category.getId().toString(), category.getName());
+        categoryRequest = new CategoryRequest("Test Category");
     }
 
     @Test
     void testGetAllCategories() {
         // Arrange
-        Category category1 = new Category();
-        category1.setId(1L);
-        category1.setName("Category 1");
-
-        Category category2 = new Category();
-        category2.setId(2L);
-        category2.setName("Category 2");
-
-        when(categoryRepository.findAll()).thenReturn(Arrays.asList(category1, category2));
+        when(categoryRepository.findAll()).thenReturn(List.of(category));
+        when(categoryResponseMapper.map(any(Category.class))).thenReturn(categoryResponse);
 
         // Act
-        List<CategoryDTO> categoryDTOs = categoryService.getAllCategories();
+        List<CategoryResponse> result = categoryService.getAllCategories();
 
         // Assert
-        assertEquals(2, categoryDTOs.size());
-        assertEquals("Category 1", categoryDTOs.get(0).getName());
-        assertEquals("Category 2", categoryDTOs.get(1).getName());
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(categoryResponse, result.get(0));
     }
 
     @Test
     void testCreateCategory() {
         // Arrange
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setName("New Category");
-
-        Category savedCategory = new Category();
-        savedCategory.setId(1L);
-        savedCategory.setName("New Category");
-
-        when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
+        when(categoryRequestMapper.map(any(CategoryRequest.class))).thenReturn(category);
+        when(categoryRepository.save(any(Category.class))).thenReturn(category);
+        when(categoryResponseMapper.map(any(Category.class))).thenReturn(categoryResponse);
 
         // Act
-        CategoryDTO createdCategoryDTO = categoryService.createCategory(categoryDTO);
+        CategoryResponse result = categoryService
+                .createCategory(categoryRequestMapper.map(categoryRequest));
 
         // Assert
-        assertNotNull(createdCategoryDTO.getId());
-        assertEquals("New Category", createdCategoryDTO.getName());
+        assertNotNull(result);
+        assertEquals(categoryResponse, result);
     }
 
     @Test
     void testGetCategoryById() {
         // Arrange
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Category 1");
-
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(category));
+        when(categoryResponseMapper.map(any(Category.class))).thenReturn(categoryResponse);
 
         // Act
-        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(1L);
+        Optional<CategoryResponse> result = categoryService.getCategoryById(category.getId());
 
         // Assert
-        assertTrue(categoryDTO.isPresent());
-        assertEquals("Category 1", categoryDTO.get().getName());
+        assertTrue(result.isPresent());
+        assertEquals(categoryResponse, result.get());
     }
 
     @Test
     void testGetCategoryByIdNotFound() {
         // Arrange
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        UUID nonExistentId = UUID.randomUUID();
+        when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // Act
-        Optional<CategoryDTO> categoryDTO = categoryService.getCategoryById(1L);
-
-        // Assert
-        assertFalse(categoryDTO.isPresent());
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> categoryService.getCategoryById(nonExistentId));
     }
 
     @Test
     void testUpdateCategory() {
         // Arrange
-        Category existingCategory = new Category();
-        existingCategory.setId(1L);
-        existingCategory.setName("Old Category");
+        Category updatedCategory = new Category();
+        updatedCategory.setName("Updated Category");
 
-        CategoryDTO updatedCategoryDTO = new CategoryDTO();
-        updatedCategoryDTO.setName("Updated Category");
-
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(existingCategory);
+        when(categoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(category));
+        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+        when(categoryResponseMapper.map(any(Category.class))).thenReturn(
+                new CategoryResponse(category.getId().toString(), "Updated Category"));
 
         // Act
-        CategoryDTO resultDTO = categoryService.updateCategory(1L, updatedCategoryDTO);
+        CategoryResponse result = categoryService
+                .updateCategory(category.getId(), updatedCategory);
 
         // Assert
-        assertEquals("Updated Category", resultDTO.getName());
+        assertNotNull(result);
+        assertEquals("Updated Category", result.name());
     }
 
     @Test
     void testUpdateCategoryNotFound() {
         // Arrange
-        CategoryDTO updatedCategoryDTO = new CategoryDTO();
-        updatedCategoryDTO.setName("Updated Category");
+        UUID nonExistentId = UUID.randomUUID();
+        Category updatedCategory = new Category();
+        updatedCategory.setName("Updated Category");
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            categoryService.updateCategory(1L, updatedCategoryDTO);
-        });
+        assertThrows(ResourceNotFoundException.class,
+                () -> categoryService.updateCategory(nonExistentId, updatedCategory));
     }
 
     @Test
     void testDeleteCategory() {
         // Arrange
-        doNothing().when(categoryRepository).deleteById(1L);
+        when(categoryRepository.existsById(any(UUID.class))).thenReturn(true);
 
         // Act
-        categoryService.deleteCategory(1L);
+        assertDoesNotThrow(() -> categoryService.deleteCategory(category.getId()));
 
         // Assert
-        verify(categoryRepository, times(1)).deleteById(1L);
+        assertDoesNotThrow(() -> categoryService.deleteCategory(category.getId()));
+    }
+
+    @Test
+    public void testDeleteCategoryNotFound() {
+        // Arrange
+        when(categoryRepository.existsById(any(UUID.class))).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> categoryService.deleteCategory(category.getId()));
     }
 }

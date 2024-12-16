@@ -1,41 +1,47 @@
 package com.promo.reviewservice.сontroller;
 
-import com.promo.reviewservice.dto.CategoryDTO;
+import com.promo.reviewservice.dto.category.CategoryRequest;
+import com.promo.reviewservice.dto.category.CategoryResponse;
+import com.promo.reviewservice.mapper.CategoryRequestMapper;
 import com.promo.reviewservice.service.CategoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
+@Tag(name = "Категории")
 @RestController
-@RequestMapping("/categories")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
+    private final CategoryRequestMapper categoryMapper;
 
-    @GetMapping
-    public List<CategoryDTO> getAllCategory() {
+    @GetMapping("/api/v1/categories")
+    public List<CategoryResponse> getAllCategories() {
         return categoryService.getAllCategories();
     }
 
-    @PostMapping
-    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return categoryService.createCategory(categoryDTO);
+    @PostMapping("/api/v1/categories")
+    public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
+        return categoryService.createCategory(categoryMapper.map(categoryRequest));
     }
 
-    @GetMapping("/{id}")
-    public CategoryDTO getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id)
+    @GetMapping("/api/v1/categories/{categoryId}")
+    public CategoryResponse getCategoryById(@PathVariable UUID categoryId) {
+        return categoryService.getCategoryById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    @PutMapping("/{id}")
-    public CategoryDTO updateCategory(@PathVariable Long id, @RequestBody CategoryDTO updatedCategoryDTO) {
-        return categoryService.updateCategory(id, updatedCategoryDTO);
+    @PutMapping("/api/v1/categories/{categoryId}")
+    public CategoryResponse updateCategory(@PathVariable UUID categoryId,
+                                           @RequestBody CategoryRequest updatedCategoryRequest) {
+        return categoryService.updateCategory(categoryId, categoryMapper.map(updatedCategoryRequest));
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    @DeleteMapping("/api/v1/categories/{categoryId}")
+    public void deleteCategory(@PathVariable UUID categoryId) {
+        categoryService.deleteCategory(categoryId);
     }
 }

@@ -1,6 +1,10 @@
 package com.promo.reviewservice;
 
-import com.promo.reviewservice.dto.SubcategoryDTO;
+import com.promo.reviewservice.dto.subcategory.SubcategoryRequest;
+import com.promo.reviewservice.dto.subcategory.SubcategoryResponse;
+import com.promo.reviewservice.exeptions.ResourceNotFoundException;
+import com.promo.reviewservice.mapper.SubcategoryRequestMapper;
+import com.promo.reviewservice.mapper.SubcategoryResponseMapper;
 import com.promo.reviewservice.model.Category;
 import com.promo.reviewservice.model.Subcategory;
 import com.promo.reviewservice.repository.CategoryRepository;
@@ -12,9 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,200 +31,185 @@ public class SubcategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private SubcategoryResponseMapper subcategoryResponseMapper;
+
+    @Mock
+    private SubcategoryRequestMapper subcategoryRequestMapper;
+
     @InjectMocks
     private SubcategoryService subcategoryService;
+
+    private Subcategory subcategory;
+    private SubcategoryResponse subcategoryResponse;
+    private SubcategoryRequest subcategoryRequest;
+    private Category category;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        category = new Category();
+        category.setId(UUID.randomUUID());
+        category.setName("Test Category");
+
+        subcategory = new Subcategory();
+        subcategory.setId(UUID.randomUUID());
+        subcategory.setName("Test Subcategory");
+        subcategory.setCategory(category);
+
+        subcategoryResponse = new SubcategoryResponse(
+                subcategory.getId().toString(),
+                subcategory.getName(),
+                category.getId().toString());
+        subcategoryRequest = new SubcategoryRequest(subcategory.getName(), category.getId().toString());
     }
 
     @Test
     void testGetAllSubcategories() {
         // Arrange
-        Subcategory subcategory1 = new Subcategory();
-        subcategory1.setId(1L);
-        subcategory1.setName("Subcategory 1");
-        Category category1 = new Category();
-        category1.setId(1L);
-        category1.setName("Category 1");
-        subcategory1.setCategory(category1);
-
-        Subcategory subcategory2 = new Subcategory();
-        subcategory2.setId(2L);
-        subcategory2.setName("Subcategory 2");
-        Category category2 = new Category();
-        category2.setId(1L);
-        category2.setName("Category 2");
-        subcategory2.setCategory(category2);
-
-        when(subcategoryRepository.findAll()).thenReturn(Arrays.asList(subcategory1, subcategory2));
+        when(subcategoryRepository.findAll()).thenReturn(List.of(subcategory));
+        when(subcategoryResponseMapper.map(any(Subcategory.class))).thenReturn(subcategoryResponse);
 
         // Act
-        List<SubcategoryDTO> subcategoryDTOs = subcategoryService.getAllSubcategories();
+        List<SubcategoryResponse> result = subcategoryService.getAllSubcategories();
 
         // Assert
-        assertEquals(2, subcategoryDTOs.size());
-        assertEquals("Subcategory 1", subcategoryDTOs.get(0).getName());
-        assertEquals("Subcategory 2", subcategoryDTOs.get(1).getName());
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(subcategoryResponse, result.get(0));
     }
 
     @Test
     void testCreateSubcategory() {
         // Arrange
-        SubcategoryDTO subcategoryDTO = new SubcategoryDTO();
-        subcategoryDTO.setName("New Subcategory");
-        subcategoryDTO.setCategoryId(1L);
-
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Category 1");
-
-        Subcategory savedSubcategory = new Subcategory();
-        savedSubcategory.setId(1L);
-        savedSubcategory.setName("New Subcategory");
-        savedSubcategory.setCategory(category);
-
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(subcategoryRepository.save(any(Subcategory.class))).thenReturn(savedSubcategory);
+        when(subcategoryRequestMapper.map(any(SubcategoryRequest.class))).thenReturn(subcategory);
+        when(categoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(category));
+        when(subcategoryRepository.save(any(Subcategory.class))).thenReturn(subcategory);
+        when(subcategoryResponseMapper.map(any(Subcategory.class))).thenReturn(subcategoryResponse);
 
         // Act
-        SubcategoryDTO createdSubcategoryDTO = subcategoryService.createSubcategory(subcategoryDTO);
+        SubcategoryResponse result = subcategoryService
+                .createSubcategory(subcategoryRequestMapper.map(subcategoryRequest));
 
         // Assert
-        assertNotNull(createdSubcategoryDTO.getId());
-        assertEquals("New Subcategory", createdSubcategoryDTO.getName());
-        assertEquals(1L, createdSubcategoryDTO.getCategoryId());
+        assertNotNull(result);
+        assertEquals(subcategoryResponse, result);
     }
 
     @Test
     void testCreateSubcategoryCategoryNotFound() {
         // Arrange
-        SubcategoryDTO subcategoryDTO = new SubcategoryDTO();
-        subcategoryDTO.setName("New Subcategory");
-        subcategoryDTO.setCategoryId(1L);
+        UUID nonExistentCategoryId = UUID.randomUUID();
+        subcategoryRequest = new SubcategoryRequest("Test Subcategory", nonExistentCategoryId.toString());
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(subcategoryRequestMapper.map(any(SubcategoryRequest.class))).thenReturn(subcategory);
+        when(categoryRepository.findById(nonExistentCategoryId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            subcategoryService.createSubcategory(subcategoryDTO);
-        });
+        assertThrows(ResourceNotFoundException.class,
+                () -> subcategoryService.createSubcategory(subcategoryRequestMapper.map(subcategoryRequest)));
     }
 
     @Test
     void testGetSubcategoryById() {
         // Arrange
-        Subcategory subcategory = new Subcategory();
-        subcategory.setId(1L);
-        subcategory.setName("Subcategory 1");
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Category 1");
-        subcategory.setCategory(category);
-
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.of(subcategory));
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(subcategory));
+        when(subcategoryResponseMapper.map(any(Subcategory.class))).thenReturn(subcategoryResponse);
 
         // Act
-        Optional<SubcategoryDTO> subcategoryDTO = subcategoryService.getSubcategoryById(1L);
+        Optional<SubcategoryResponse> result = subcategoryService.getSubcategoryById(subcategory.getId());
 
         // Assert
-        assertTrue(subcategoryDTO.isPresent());
-        assertEquals("Subcategory 1", subcategoryDTO.get().getName());
-        assertEquals(1L, subcategoryDTO.get().getCategoryId());
+        assertTrue(result.isPresent());
+        assertEquals(subcategoryResponse, result.get());
     }
 
     @Test
     void testGetSubcategoryByIdNotFound() {
         // Arrange
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.empty());
+        UUID nonExistentId = UUID.randomUUID();
+        when(subcategoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // Act
-        Optional<SubcategoryDTO> subcategoryDTO = subcategoryService.getSubcategoryById(1L);
-
-        // Assert
-        assertFalse(subcategoryDTO.isPresent());
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> subcategoryService.getSubcategoryById(nonExistentId));
     }
 
     @Test
     void testUpdateSubcategory() {
         // Arrange
-        Subcategory existingSubcategory = new Subcategory();
-        existingSubcategory.setId(1L);
-        existingSubcategory.setName("Old Subcategory");
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Category 1");
-        existingSubcategory.setCategory(category);
+        Subcategory updatedSubcategory = new Subcategory();
+        updatedSubcategory.setName("Updated Subcategory");
+        updatedSubcategory.setCategory(category);
 
-        SubcategoryDTO updatedSubcategoryDTO = new SubcategoryDTO();
-        updatedSubcategoryDTO.setName("Updated Subcategory");
-        updatedSubcategoryDTO.setCategoryId(2L);
-
-        Category updatedCategory = new Category();
-        updatedCategory.setId(2L);
-        updatedCategory.setName("Category 2");
-
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.of(existingSubcategory));
-        when(categoryRepository.findById(2L)).thenReturn(Optional.of(updatedCategory));
-        when(subcategoryRepository.save(any(Subcategory.class))).thenReturn(existingSubcategory);
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(subcategory));
+        when(categoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(category));
+        when(subcategoryRepository.save(any(Subcategory.class))).thenReturn(updatedSubcategory);
+        when(subcategoryResponseMapper.map(any(Subcategory.class)))
+                .thenReturn(new SubcategoryResponse(
+                        subcategory.getId().toString(),
+                        "Updated Subcategory",
+                        category.getId().toString()));
 
         // Act
-        SubcategoryDTO resultDTO = subcategoryService.updateSubcategory(1L, updatedSubcategoryDTO);
+        SubcategoryResponse result = subcategoryService.updateSubcategory(subcategory.getId(), updatedSubcategory);
 
         // Assert
-        assertEquals("Updated Subcategory", resultDTO.getName());
-        assertEquals(2L, resultDTO.getCategoryId());
+        assertNotNull(result);
+        assertEquals("Updated Subcategory", result.name());
     }
 
     @Test
     void testUpdateSubcategoryNotFound() {
         // Arrange
-        SubcategoryDTO updatedSubcategoryDTO = new SubcategoryDTO();
-        updatedSubcategoryDTO.setName("Updated Subcategory");
-        updatedSubcategoryDTO.setCategoryId(2L);
+        UUID nonExistentId = UUID.randomUUID();
+        Subcategory updatedSubcategory = new Subcategory();
+        updatedSubcategory.setName("Updated Subcategory");
+        updatedSubcategory.setCategory(category);
 
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(subcategoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            subcategoryService.updateSubcategory(1L, updatedSubcategoryDTO);
-        });
+        assertThrows(ResourceNotFoundException.class,
+                () -> subcategoryService.updateSubcategory(nonExistentId, updatedSubcategory));
     }
 
     @Test
     void testUpdateSubcategoryCategoryNotFound() {
         // Arrange
-        Subcategory existingSubcategory = new Subcategory();
-        existingSubcategory.setId(1L);
-        existingSubcategory.setName("Old Subcategory");
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Category 1");
-        existingSubcategory.setCategory(category);
+        UUID nonExistentCategoryId = UUID.randomUUID();
+        Subcategory updatedSubcategory = new Subcategory();
+        updatedSubcategory.setName("Updated Subcategory");
+        updatedSubcategory.setCategory(new Category());
+        updatedSubcategory.getCategory().setId(nonExistentCategoryId);
 
-        SubcategoryDTO updatedSubcategoryDTO = new SubcategoryDTO();
-        updatedSubcategoryDTO.setName("Updated Subcategory");
-        updatedSubcategoryDTO.setCategoryId(2L);
-
-        when(subcategoryRepository.findById(1L)).thenReturn(Optional.of(existingSubcategory));
-        when(categoryRepository.findById(2L)).thenReturn(Optional.empty());
+        when(subcategoryRepository.findById(any(UUID.class))).thenReturn(Optional.of(subcategory));
+        when(categoryRepository.findById(nonExistentCategoryId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            subcategoryService.updateSubcategory(1L, updatedSubcategoryDTO);
-        });
+        assertThrows(ResourceNotFoundException.class,
+                () -> subcategoryService.updateSubcategory(subcategory.getId(), updatedSubcategory));
     }
 
     @Test
     void testDeleteSubcategory() {
         // Arrange
-        doNothing().when(subcategoryRepository).deleteById(1L);
+        when(subcategoryRepository.existsById(any(UUID.class))).thenReturn(true);
 
         // Act
-        subcategoryService.deleteSubcategory(1L);
+        assertDoesNotThrow(() -> subcategoryService.deleteSubcategory(subcategory.getId()));
 
         // Assert
-        verify(subcategoryRepository, times(1)).deleteById(1L);
+        verify(subcategoryRepository, times(1)).deleteById(subcategory.getId());
+    }
+
+    @Test
+    public void testDeleteSubcategoryNotFound() {
+        // Arrange
+        when(subcategoryRepository.existsById(any(UUID.class))).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> subcategoryService.deleteSubcategory(subcategory.getId()));
     }
 }
